@@ -1,10 +1,9 @@
-package com.mola.domain.member;
+package com.mola.domain.tripFriends;
 
+import com.mola.domain.member.Member;
 import com.mola.domain.trip.TripPlan;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor

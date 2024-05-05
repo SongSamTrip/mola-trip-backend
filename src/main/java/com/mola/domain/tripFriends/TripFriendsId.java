@@ -1,7 +1,5 @@
-package com.mola.domain.member;
+package com.mola.domain.tripFriends;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
 import lombok.*;
 
 import java.io.Serializable;
