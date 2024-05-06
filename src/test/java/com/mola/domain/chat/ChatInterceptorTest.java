@@ -1,6 +1,7 @@
 package com.mola.domain.chat;
 
 import com.mola.domain.tripFriends.TripFriendsService;
+import com.mola.global.exception.CustomException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +15,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -76,7 +76,7 @@ class ChatInterceptorTest {
         when(securityContext.getAuthentication()).thenReturn(auth);
 
         // expect
-        assertThrows(IllegalArgumentException.class, () -> chatInterceptor.preSend(message, messageChannel));
+        assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
     }
 
     @DisplayName("사용자 정보가 없는 메시지 요청은 에러를 반환")
@@ -89,7 +89,7 @@ class ChatInterceptorTest {
         when(securityContext.getAuthentication()).thenReturn(null);
 
         // expect
-        assertThrows(AccessDeniedException.class, () -> chatInterceptor.preSend(message, messageChannel));
+        assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
     }
 
     @DisplayName("목적지 경로가 잘못된 메시지는 에러를 반환")
@@ -102,7 +102,7 @@ class ChatInterceptorTest {
         when(securityContext.getAuthentication()).thenReturn(createAuthentication());
 
         // expect
-        assertThrows(IllegalArgumentException.class, () -> chatInterceptor.preSend(message, messageChannel));
+        assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
     }
 
     @DisplayName("목적지 경로가 없는 메시지는 에러를 반환")
@@ -114,7 +114,7 @@ class ChatInterceptorTest {
         when(securityContext.getAuthentication()).thenReturn(createAuthentication());
 
         // expect
-        assertThrows(IllegalArgumentException.class, () -> chatInterceptor.preSend(message, messageChannel));
+        assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
     }
 
 
@@ -128,7 +128,7 @@ class ChatInterceptorTest {
         when(securityContext.getAuthentication()).thenReturn(createAuthentication());
 
         // expect
-        assertThrows(IllegalArgumentException.class, () -> chatInterceptor.preSend(message, messageChannel));
+        assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
     }
 
     @DisplayName("회원이 속한 여행플랜이 아닌 메시지는 에러를 반환")
@@ -142,7 +142,7 @@ class ChatInterceptorTest {
         when(tripFriendsService.existsByMemberAndTripPlan(anyLong(), anyLong())).thenReturn(false);
 
         // expect
-        assertThrows(AccessDeniedException.class, () -> chatInterceptor.preSend(message, messageChannel));
+        assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
     }
 
     private Authentication createAuthentication(){
