@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collections;
 
@@ -30,6 +31,9 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ChatInterceptorTest {
+
+    private static final String VALID_ID = "1";
+    private static final String INVALID_ID = "2";
 
     @Mock
     MessageChannel messageChannel;
@@ -55,13 +59,13 @@ class ChatInterceptorTest {
     void whenMessageWithAuthentication_success() {
         // given
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
-        accessor.setDestination("/sub/1");
+        accessor.setDestination("/sub/chat/" + VALID_ID);
         Message message = new GenericMessage(new byte[0], accessor.toMap());
-        when(securityContext.getAuthentication()).thenReturn(createAuthentication());
-        when(tripFriendsService.existsByMemberAndTripPlan(1L, 1L)).thenReturn(true);
+        when(securityContext.getAuthentication()).thenReturn(createAuthentication(VALID_ID));
+        when(tripFriendsService.existsByMemberAndTripPlan(anyLong(), anyLong())).thenReturn(true);
 
         // expect
-        assertDoesNotThrow(()-> chatInterceptor.preSend(message, messageChannel));
+        assertDoesNotThrow(() -> chatInterceptor.preSend(message, messageChannel));
     }
 
     @DisplayName("사용자 식별자 정보가 잘못된 메시지 요청은 에러를 반환")
@@ -69,10 +73,9 @@ class ChatInterceptorTest {
     void whenMessageWithInvalidAuthentication_fail() {
         // given
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
-        accessor.setDestination("/sub/1");
+        accessor.setDestination("/sub/" + VALID_ID);
         Message message = new GenericMessage(new byte[0], accessor.toMap());
-        var authorities = Collections.singletonList(new SimpleGrantedAuthority("USER"));
-        Authentication auth = new UsernamePasswordAuthenticationToken("wrong", null, authorities);
+        Authentication auth = createAuthentication(INVALID_ID);
         when(securityContext.getAuthentication()).thenReturn(auth);
 
         // expect
@@ -84,7 +87,7 @@ class ChatInterceptorTest {
     void whenMessageWithoutAuthentication_fail() {
         // given
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
-        accessor.setDestination("/sub/1");
+        accessor.setDestination("/sub/" + VALID_ID);
         Message message = new GenericMessage(new byte[0], accessor.toMap());
         when(securityContext.getAuthentication()).thenReturn(null);
 
@@ -99,7 +102,7 @@ class ChatInterceptorTest {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setDestination("/wrong");
         Message message = new GenericMessage(new byte[0], accessor.toMap());
-        when(securityContext.getAuthentication()).thenReturn(createAuthentication());
+        when(securityContext.getAuthentication()).thenReturn(createAuthentication(VALID_ID));
 
         // expect
         assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
@@ -111,7 +114,7 @@ class ChatInterceptorTest {
         // given
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         Message message = new GenericMessage(new byte[0], accessor.toMap());
-        when(securityContext.getAuthentication()).thenReturn(createAuthentication());
+        when(securityContext.getAuthentication()).thenReturn(createAuthentication(VALID_ID));
 
         // expect
         assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
@@ -125,7 +128,7 @@ class ChatInterceptorTest {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setDestination("/sub/wrong");
         Message message = new GenericMessage(new byte[0], accessor.toMap());
-        when(securityContext.getAuthentication()).thenReturn(createAuthentication());
+        when(securityContext.getAuthentication()).thenReturn(createAuthentication(VALID_ID));
 
         // expect
         assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
@@ -136,17 +139,30 @@ class ChatInterceptorTest {
     void whenMessageWithInValidTripPlan_fail() {
         // given
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
-        accessor.setDestination("/sub/1");
+        accessor.setDestination("/sub/" + VALID_ID);
         Message message = new GenericMessage(new byte[0], accessor.toMap());
-        when(securityContext.getAuthentication()).thenReturn(createAuthentication());
+        when(securityContext.getAuthentication()).thenReturn(createAuthentication(INVALID_ID));
         when(tripFriendsService.existsByMemberAndTripPlan(anyLong(), anyLong())).thenReturn(false);
 
         // expect
         assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
     }
 
-    private Authentication createAuthentication(){
-        var authorities = Collections.singletonList(new SimpleGrantedAuthority("USER"));
-        return new UsernamePasswordAuthenticationToken(1L, null, authorities);
+    private Authentication createAuthentication(String username) {
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                username,
+                "password",
+                true,
+                true,
+                true,
+                true,
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+        );
+
+        return new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
     }
 }
