@@ -11,7 +11,6 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,21 +28,12 @@ public class ChatInterceptor implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         StompCommand command = accessor.getCommand();
-        String authorization = accessor.getFirstNativeHeader("Authorization");
 
         if(requiresAuthentication(command)){
-            if (authorization != null && authorization.startsWith("Bearer ")) {
-                String token = authorization.substring(7);
+            Authentication authentication = jwtProvider.extractAuthenticationFromStompHeaderAccessor(accessor);
 
-                if (jwtProvider.verifyToken(token)) {
-                    Long memberId = jwtProvider.extractMemberIdFromToken(token);
-                    UserDetails user = jwtProvider.createUserDetails(memberId, "ROLE_USER");
-
-                    Authentication authentication = new UsernamePasswordAuthenticationToken(
-                            user, "", user.getAuthorities());
-
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
+            if(authentication != null){
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }else {
                 throw new MessageDeliveryException(StompError.UNAUTHORIZED.name());
             }
