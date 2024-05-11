@@ -1,4 +1,4 @@
-package com.mola.domain.chat;
+package com.mola.domain.chat.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;

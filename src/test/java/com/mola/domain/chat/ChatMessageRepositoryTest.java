@@ -1,5 +1,7 @@
 package com.mola.domain.chat;
 
+import com.mola.domain.chat.entity.ChatMessage;
+import com.mola.domain.chat.repository.ChatMessageRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

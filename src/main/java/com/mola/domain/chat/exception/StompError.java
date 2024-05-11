@@ -1,4 +1,4 @@
-package com.mola.domain.chat;
+package com.mola.domain.chat.exception;
 
 
 public enum StompError {

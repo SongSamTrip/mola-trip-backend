@@ -1,5 +1,7 @@
-package com.mola.domain.chat;
+package com.mola.domain.chat.controller;
 
+import com.mola.domain.chat.entity.ChatMessage;
+import com.mola.domain.chat.service.ChatMessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
