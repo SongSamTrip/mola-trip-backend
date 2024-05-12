@@ -1,19 +1,9 @@
 package com.mola.global.security.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.member.repository.MemberRepository;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,14 +11,24 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JwtProviderTest {
 
     @Mock
     MemberRepository memberRepository;
+
+    @Mock
+    StompHeaderAccessor accessor;
 
     @InjectMocks
     JwtProvider jwtProvider;
@@ -170,4 +170,35 @@ class JwtProviderTest {
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
         assertTrue(hasAdminRole);
     }
+
+
+    @DisplayName("유효한 stomp 헤더라면 인증정보를 반환")
+    @Test
+    void extractAuthenticationFromStompHeaderAccessor_success() {
+        // given
+        Long validMemberId = 1L;
+        String accessToken = "Bearer " + jwtProvider.createAccessToken(validMemberId);
+        when(accessor.getFirstNativeHeader("Authorization")).thenReturn(accessToken);
+
+        // when
+        Authentication authentication = jwtProvider.extractAuthenticationFromStompHeaderAccessor(accessor);
+
+        // then
+        assertNotNull(authentication);
+        assertEquals(validMemberId.toString(), authentication.getName());
+    }
+
+    @DisplayName("유효하지 않은 stomp 헤더라면 null 반환")
+    @Test
+    void extractAuthenticationFromStompHeaderAccessor_fail() {
+        // given
+        when(accessor.getFirstNativeHeader("Authorization")).thenReturn(null);
+
+        // when
+        Authentication authentication = jwtProvider.extractAuthenticationFromStompHeaderAccessor(accessor);
+
+        // then
+        assertNull(authentication);
+    }
+
 }
