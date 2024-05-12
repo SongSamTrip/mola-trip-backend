@@ -1,5 +1,6 @@
-package com.mola.domain.chat;
+package com.mola.domain.chat.common;
 
+import com.mola.domain.chat.exception.StompError;
 import com.mola.domain.tripFriends.TripFriendsService;
 import com.mola.global.security.service.JwtProvider;
 import lombok.RequiredArgsConstructor;

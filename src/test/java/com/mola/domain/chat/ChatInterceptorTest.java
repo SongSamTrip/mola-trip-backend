@@ -1,5 +1,6 @@
 package com.mola.domain.chat;
 
+import com.mola.domain.chat.common.ChatInterceptor;
 import com.mola.domain.tripFriends.TripFriendsService;
 import com.mola.global.exception.CustomException;
 import org.junit.jupiter.api.AfterEach;
