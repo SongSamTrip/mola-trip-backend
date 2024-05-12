@@ -1,6 +1,5 @@
 package com.mola.domain.chat.common;
 
-import com.mola.domain.chat.common.ChatInterceptor;
 import com.mola.domain.chat.exception.StompErrorHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
