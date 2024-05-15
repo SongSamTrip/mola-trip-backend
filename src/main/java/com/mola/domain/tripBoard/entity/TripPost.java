@@ -4,6 +4,7 @@ import com.mola.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -24,12 +25,18 @@ public class TripPost {
     private String preview;
     private String content;
     private TripPostStatus tripPostStatus;
+
+    @Builder.Default
     @OneToMany(mappedBy = "tripPost", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Comment> comments;
+    private List<Comment> comments = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "tripPost", cascade = CascadeType.REMOVE)
+    private List<TripImage> imageUrl = new ArrayList<>();
+
+    @Builder.Default
     @OneToMany(mappedBy = "tripPost", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<TripImage> imageUrl;
-    @OneToMany(mappedBy = "tripPost", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Likes> likes;
+    private List<Likes> likes = new ArrayList<>();
     private int likeCount;
 
 
@@ -56,6 +63,10 @@ public class TripPost {
         TripPost tripPost = new TripPost();
         tripPost.setTripPostStatus(TripPostStatus.DRAFT);
         return tripPost;
+    }
+
+    public void toPublic() {
+        this.tripPostStatus = TripPostStatus.DRAFT;
     }
 }
 
