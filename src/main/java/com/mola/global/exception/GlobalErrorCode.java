@@ -16,7 +16,8 @@ public enum GlobalErrorCode implements ErrorCode {
     InvalidTripPlanIdentifierFormat(HttpStatus.BAD_REQUEST, "잘못된 TripPlan 식별자 형식입니다."),
     MissingTripPlanIdentifier(HttpStatus.BAD_REQUEST, "TripPlan 식별자가 누락되었습니다."),
     InvalidTripPostIdentifier(HttpStatus.BAD_REQUEST, "유효하지 않은 여행 식별자입니다."),
-    InvalidImageType(HttpStatus.BAD_REQUEST, "잘못된 형식의 이미지 파일입니다.");
+    InvalidImageType(HttpStatus.BAD_REQUEST, "잘못된 형식의 이미지 파일입니다."),
+    MissingRequireData(HttpStatus.BAD_REQUEST, "필수 입력값을 입력하세요.");
 
 
     private final HttpStatus httpStatus;
