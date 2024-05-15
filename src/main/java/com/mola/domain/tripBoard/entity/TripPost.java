@@ -1,11 +1,13 @@
 package com.mola.domain.tripBoard.entity;
 
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.tripBoard.dto.TripPostResponseDto;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -67,6 +69,20 @@ public class TripPost {
 
     public void toPublic() {
         this.tripPostStatus = TripPostStatus.DRAFT;
+    }
+
+
+    public static TripPostResponseDto fromEntity(TripPost tripPost) {
+        return TripPostResponseDto.builder()
+                .id(tripPost.getId())
+                .name(tripPost.getName())
+                .content(tripPost.getContent())
+                .tripPostStatus(tripPost.getTripPostStatus())
+                .commentCount(tripPost.getComments().size())
+                .likeCount(tripPost.getLikeCount())
+                .imageList(tripPost.getImageUrl().stream().map(TripImage::getUrl).collect(Collectors.toList()))
+                .writer(tripPost.getMember().getNickname())
+                .build();
     }
 }
 
