@@ -1,5 +1,7 @@
 package com.mola.domain.tripBoard.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mola.domain.tripBoard.dto.TripPostDto;
 import com.mola.domain.tripBoard.service.TripPostService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,11 +10,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -24,8 +27,12 @@ class TripPostControllerTest {
     @Autowired
     MockMvc mockMvc;
 
+    @Autowired
+    ObjectMapper objectMapper;
+
     @MockBean
     TripPostService tripPostService;
+
 
     @DisplayName("임시 게시글을 생성")
     @WithMockUser
@@ -38,6 +45,50 @@ class TripPostControllerTest {
 
         // then
         verify(tripPostService, times(1)).createDraftTripPost();
+    }
+
+    @DisplayName("필드값들이 정상적이라면 service 를 호출")
+    @WithMockUser
+    @Test
+    void whenValidAllOfFiledChangeStatusToPublic() throws Exception {
+        // given
+        TripPostDto tripPostDto = TripPostDto.builder()
+                .id(1L)
+                .name("name")
+                .content("content")
+                .build();
+
+        // when
+        ResultActions resultActions = mockMvc.perform(post("/tripPosts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(tripPostDto))
+                .with(csrf()));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        verify(tripPostService, times(1)).save(any());
+    }
+
+    @DisplayName("필드값들이 조건에 맞지 않다면 service 를 호출하지 않음")
+    @WithMockUser
+    @Test
+    void whenValidAllOfFiledChangeStatusToPublic_fail() throws Exception {
+        // given
+        TripPostDto tripPostDto = TripPostDto.builder()
+                .id(1L)
+                .name(null)
+                .content(null)
+                .build();
+
+        // when
+        ResultActions resultActions = mockMvc.perform(post("/tripPosts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(tripPostDto))
+                .with(csrf()));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        verify(tripPostService, never()).save(any());
     }
 
 }
