@@ -1,7 +1,9 @@
 package com.mola.domain.tripBoard.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mola.domain.tripBoard.dto.TripImageDto;
 import com.mola.domain.tripBoard.dto.TripPostDto;
+import com.mola.domain.tripBoard.dto.TripPostUpdateDto;
 import com.mola.domain.tripBoard.service.TripPostService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,9 +17,15 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.LongStream;
+
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +55,7 @@ class TripPostControllerTest {
         verify(tripPostService, times(1)).createDraftTripPost();
     }
 
-    @DisplayName("필드값들이 정상적이라면 service 를 호출")
+    @DisplayName("필드값들이 정상적이라면 save 를 호출")
     @WithMockUser
     @Test
     void whenValidAllOfFiledChangeStatusToPublic() throws Exception {
@@ -69,7 +77,7 @@ class TripPostControllerTest {
         verify(tripPostService, times(1)).save(any());
     }
 
-    @DisplayName("필드값들이 조건에 맞지 않다면 service 를 호출하지 않음")
+    @DisplayName("필드값들이 조건에 맞지 않다면 save 를 호출하지 않음")
     @WithMockUser
     @Test
     void whenValidAllOfFiledChangeStatusToPublic_fail() throws Exception {
@@ -89,6 +97,36 @@ class TripPostControllerTest {
         // then
         resultActions.andExpect(status().isBadRequest());
         verify(tripPostService, never()).save(any());
+    }
+
+    @DisplayName("필드값들이 조건에 맞지 않다면 update 를 호출하지 않음")
+    @WithMockUser
+    @Test
+    void callUpdate_success() throws Exception {
+        // given
+        List<TripImageDto> tripImageList = new ArrayList<>();
+        LongStream.range(1, 11).forEach(i -> {
+            tripImageList.add(new TripImageDto(i, "test", 1L));
+        });
+
+        var updateDto = TripPostUpdateDto.builder()
+                .id(1L)
+                .name("test")
+                .content("test")
+                .tripImageList(tripImageList)
+                .build();
+
+        // when
+        ResultActions resultActions = mockMvc.perform(put("/tripPosts/{id}", updateDto.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateDto))
+                .with(csrf()));
+
+        // then
+        resultActions.andDo(print())
+                .andExpect(status().isOk());
+
+
     }
 
 }
