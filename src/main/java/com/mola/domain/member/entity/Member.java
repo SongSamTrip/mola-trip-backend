@@ -1,5 +1,8 @@
 package com.mola.domain.member.entity;
 
+import com.mola.domain.tripBoard.entity.Comment;
+import com.mola.domain.tripBoard.entity.Likes;
+import com.mola.domain.tripBoard.entity.TripPost;
 import com.mola.domain.tripFriends.TripFriends;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -35,11 +38,17 @@ public class Member {
 
     @Column(name = "profile_image_url")
     private String profileImageUrl;
-    @OneToMany(
-            mappedBy = "member",
-            cascade = CascadeType.ALL
-    )
+    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
     List<TripFriends> tripFriendsList;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<TripPost> tripPosts;
+
+    @OneToMany(mappedBy = "member")
+    private List<Likes> likes;
+
+    @OneToMany(mappedBy = "member")
+    private List<Comment> comments;
 
     @Column(name = "refresh_token", length = 512)
     private String refreshToken;
@@ -51,5 +60,28 @@ public class Member {
         this.refreshToken = refreshToken;
     }
 
+    public void addTripPost(TripPost post){
+        this.tripPosts.add(post);
+    }
+
+    public void addComment(Comment comment){
+        this.comments.add(comment);
+    }
+
+    public void addLikes(Likes likes){
+        this.likes.add(likes);
+    }
+
+    public void deleteTripPost(TripPost tripPost){
+        this.tripPosts.remove(tripPost);
+    }
+
+    public void deleteComment(Comment comment){
+        this.comments.remove(comment);
+    }
+
+    public void deleteLikes(Likes likes){
+        this.likes.remove(likes);
+    }
 
 }
