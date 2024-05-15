@@ -1,6 +1,8 @@
 package com.mola.domain.tripBoard.controller;
 
 import com.mola.domain.tripBoard.dto.TripPostDto;
+import com.mola.domain.tripBoard.dto.TripPostResponseDto;
+import com.mola.domain.tripBoard.dto.TripPostUpdateDto;
 import com.mola.domain.tripBoard.entity.TripPost;
 import com.mola.domain.tripBoard.service.TripPostService;
 import com.mola.global.exception.CustomException;
@@ -10,10 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -37,6 +36,18 @@ public class TripPostController {
         TripPost save = tripPostService.save(tripPostDto);
 
         return ResponseEntity.ok(save);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TripPostResponseDto> updateTripPost(@Valid @RequestBody TripPostUpdateDto tripPostUpdateDto,
+                                                              Errors errors) {
+        if(errors.hasErrors()){
+            throw new CustomException(GlobalErrorCode.MissingRequireData);
+        }
+
+        TripPostResponseDto responseDto = tripPostService.update(tripPostUpdateDto);
+
+        return ResponseEntity.ok(responseDto);
     }
 
 
