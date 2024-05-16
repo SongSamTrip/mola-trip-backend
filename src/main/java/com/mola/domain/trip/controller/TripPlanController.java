@@ -4,7 +4,9 @@ import com.mola.domain.trip.dto.NewTripPlanDto;
 import com.mola.domain.trip.service.TripPlanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,5 +22,11 @@ public class TripPlanController {
     public ResponseEntity<String> createTripPlan(@RequestBody NewTripPlanDto newTripPlanDto) {
         tripPlanService.addTripPlan(newTripPlanDto);
         return ResponseEntity.ok("success");
+    }
+
+    @PutMapping("/trip-plan/list/{tripId}")
+    public ResponseEntity<String> updateTripPlan(@PathVariable Long tripId, @RequestBody NewTripPlanDto newTripPlanDto) {
+        tripPlanService.updateTripPlanList(tripId, newTripPlanDto);
+        return ResponseEntity.ok("Trip plan updated success");
     }
 }

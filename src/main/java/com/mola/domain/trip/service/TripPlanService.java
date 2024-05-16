@@ -8,6 +8,7 @@ import com.mola.domain.trip.repository.TripStatus;
 import com.mola.domain.tripFriends.TripFriends;
 import com.mola.domain.tripFriends.TripFriendsRepository;
 import com.mola.global.util.SecurityUtil;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,17 @@ public class TripPlanService {
         tripFriendsRepository.save(tripFriends);
 
         return tripPlan.toString();
+    }
+
+    public void updateTripPlanList(Long tripId, NewTripPlanDto newTripPlanDto) {
+        Optional<TripPlan> tripPlanOptional = tripPlanRepository.findById(tripId);
+
+        if (tripPlanOptional.isPresent()) {
+            TripPlan tripPlan = tripPlanOptional.get();
+
+            tripPlanRepository.save(tripPlan);
+        } else {
+        }
     }
 
 }
