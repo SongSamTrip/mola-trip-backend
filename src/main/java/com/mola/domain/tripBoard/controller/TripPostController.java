@@ -77,6 +77,18 @@ public class TripPostController {
         return ResponseEntity.ok("게시글이 삭제되었습니다.");
     }
 
+    @PostMapping("/likes")
+    public ResponseEntity<?> addLike(@RequestParam("tripPostId") Long tripPostId){
+        tripPostService.addLikes(tripPostId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/likes")
+    public ResponseEntity<?> removeLike(@RequestParam("tripPostId") Long tripPostId){
+//        tripPostService.removeLikes(tripPostId);
+        return ResponseEntity.ok().build();
+    }
+
 
 
 }
