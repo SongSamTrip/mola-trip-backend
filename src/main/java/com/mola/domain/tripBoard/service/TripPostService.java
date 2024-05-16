@@ -1,18 +1,22 @@
 package com.mola.domain.tripBoard.service;
 
+import com.mola.domain.member.repository.MemberRepository;
 import com.mola.domain.tripBoard.dto.*;
+import com.mola.domain.tripBoard.entity.Likes;
 import com.mola.domain.tripBoard.entity.TripImage;
 import com.mola.domain.tripBoard.entity.TripPost;
-import com.mola.domain.tripBoard.repository.TripImageRepository;
+import com.mola.domain.tripBoard.repository.LikesRepository;
 import com.mola.domain.tripBoard.repository.TripPostRepository;
 import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
+import com.mola.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,8 +31,15 @@ import java.util.stream.Collectors;
 public class TripPostService {
 
     private final TripPostRepository tripPostRepository;
-    private final TripImageRepository tripImageRepository;
+
+    private final MemberRepository memberRepository;
+
+    private final LikesRepository likesRepository;
     private final ModelMapper modelMapper;
+
+    private static final int MAX_RETRY = 3;
+
+    private static final long RETRY_DELAY = 100;
 
     public List<TripPostListResponseDto> getAllTripPosts(Pageable pageable) {
         Page<TripPost> all = tripPostRepository.findAll(pageable);
@@ -101,6 +112,30 @@ public class TripPostService {
         TripPost byId = findById(id);
         byId.getImageUrl().forEach(TripImage::setTripPostNull);
         tripPostRepository.delete(byId);
+    }
+
+
+    @Transactional
+    public void addLikes(Long tripPostId) {
+        int retryCount = 0;
+        UserDetails authenticatedUser = SecurityUtil.getAuthenticatedUser();
+        String username = authenticatedUser.getUsername();
+
+        if(likesRepository.existsByMemberIdAndTripPostId(Long.valueOf(username), tripPostId)){
+            throw new CustomException(GlobalErrorCode.DuplicateLike);
+        }
+
+        memberRepository.findById(Long.valueOf(username));
+
+
+        while(retryCount < MAX_RETRY) {
+            TripPost post = tripPostRepository.findByIdWithOptimisticLock(tripPostId);
+            Likes likes = new Likes();
+            likes.setMember();
+
+
+        }
+
     }
 
     public boolean isOwner(Long id){
