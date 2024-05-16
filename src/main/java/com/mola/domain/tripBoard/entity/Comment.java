@@ -1,15 +1,16 @@
 package com.mola.domain.tripBoard.entity;
 
+import com.mola.domain.member.dto.MemberCommentDto;
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.tripBoard.dto.CommentDto;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(of = "id")
+@Builder
+@Setter
 @Getter
 @Entity
 public class Comment {
@@ -28,5 +29,13 @@ public class Comment {
     public void updateRelatedEntities(){
         member.addComment(this);
         tripPost.addComment(this);
+    }
+
+    public static CommentDto toCommentDto(Comment comment){
+        return CommentDto.builder()
+                .content(comment.getContent())
+                .memberCommentDto(new MemberCommentDto(comment.getMember().getId(),
+                        comment.getMember().getNickname()))
+                .build();
     }
 }
