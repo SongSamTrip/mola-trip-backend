@@ -1,6 +1,6 @@
 package com.mola.domain.tripBoard.dto;
 
-import com.mola.domain.member.dto.MemberCommentDto;
+import com.mola.domain.member.dto.MemberTripPostDto;
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.tripBoard.entity.Comment;
 import com.mola.domain.tripBoard.entity.TripPost;
@@ -13,7 +13,7 @@ import lombok.*;
 @Getter
 public class CommentDto {
 
-    private MemberCommentDto memberCommentDto;
+    private MemberTripPostDto memberTripPostDto;
 
     private String content;
 
