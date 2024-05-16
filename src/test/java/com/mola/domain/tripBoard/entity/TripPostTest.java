@@ -68,7 +68,7 @@ class TripPostTest {
         tripPost.setImageUrl(tripImages);
 
         // when
-        TripPostResponseDto dto = TripPost.fromEntity(tripPost);
+        TripPostResponseDto dto = TripPost.toTripPostResponseDto(tripPost);
 
         // then
         assertEquals(tripPost.getId(), dto.getId());
