@@ -1,6 +1,5 @@
 package com.mola.domain.tripBoard.dto;
 
-import com.mola.domain.tripBoard.entity.TripImage;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
