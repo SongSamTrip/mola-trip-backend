@@ -15,7 +15,7 @@ class CommentTest {
         // given
         Member member = Fixture.createMember(1L, "test");
         TripPost tripPost = Fixture.createTripPost(1L, TripPostStatus.PUBLIC);
-        Comment comment = Fixture.createComment(1L, member, tripPost);
+        Comment comment = Fixture.createComment(1L, "content", member, tripPost);
         assertFalse(member.getLikes().contains(comment));
         assertFalse(tripPost.getLikes().contains(comment));
 
