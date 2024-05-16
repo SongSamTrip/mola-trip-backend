@@ -30,9 +30,12 @@ public class SecurityConfiguration {
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final JwtProvider jwtProvider;
+    private final CorsConfig config;
 
     private static final String[] AUTH_WHITELIST = {
-            "/api/**"
+            "/api/auth/oauth2/*",
+            "/oauth2/callback/*"
+
     };
 
     @Bean
@@ -73,6 +76,7 @@ public class SecurityConfiguration {
                                 endpoint.userService(oAuth2UserService))
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler(oAuth2FailureHandler))
+                .addFilter(config.corsFilter())
                 .build();
     }
 

@@ -1,4 +1,4 @@
-package com.mola.domain.trip;
+package com.mola.domain.trip.repository;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
