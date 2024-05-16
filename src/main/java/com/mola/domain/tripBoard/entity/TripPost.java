@@ -1,6 +1,7 @@
 package com.mola.domain.tripBoard.entity;
 
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.tripBoard.dto.TripPostListResponseDto;
 import com.mola.domain.tripBoard.dto.TripPostResponseDto;
 import jakarta.persistence.*;
 import lombok.*;
@@ -72,7 +73,7 @@ public class TripPost {
     }
 
 
-    public static TripPostResponseDto fromEntity(TripPost tripPost) {
+    public static TripPostResponseDto toTripPostResponseDto(TripPost tripPost) {
         return TripPostResponseDto.builder()
                 .id(tripPost.getId())
                 .name(tripPost.getName())
@@ -82,6 +83,16 @@ public class TripPost {
                 .likeCount(tripPost.getLikeCount())
                 .imageList(tripPost.getImageUrl().stream().map(TripImage::getUrl).collect(Collectors.toList()))
                 .writer(tripPost.getMember().getNickname())
+                .build();
+    }
+
+    public static TripPostListResponseDto toTripPostListResponseDto(TripPost tripPost) {
+        return TripPostListResponseDto.builder()
+                .id(tripPost.getId())
+                .name(tripPost.getName())
+                .preview(tripPost.getContent().substring(0, 50))
+                .commentCount(tripPost.getComments().size())
+                .likeCount(tripPost.getLikeCount())
                 .build();
     }
 }
