@@ -1,9 +1,6 @@
 package com.mola.domain.tripBoard.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +14,7 @@ public class TripImage {
     @Id @GeneratedValue
     private Long id;
     private String url;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private TripPost tripPost;
 
     public TripImage(String url, TripPost tripPost) {
