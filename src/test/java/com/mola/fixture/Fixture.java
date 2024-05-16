@@ -20,6 +20,7 @@ public class Fixture {
                 .build();
     }
 
+
     public static TripPost createTripPost(Long id, TripPostStatus status) {
         return TripPost.builder()
                 .id(id)
@@ -29,8 +30,8 @@ public class Fixture {
                 .build();
     }
 
-    public static Comment createComment(Long id, Member member, TripPost tripPost){
-        return new Comment(id, "", member, tripPost);
+    public static Comment createComment(Long id, String content, Member member, TripPost tripPost){
+        return new Comment(id, content, member, tripPost);
     }
 
     public static Likes createLikes(Long id, Member member, TripPost tripPost){
