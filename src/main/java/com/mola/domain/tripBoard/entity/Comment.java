@@ -1,6 +1,6 @@
 package com.mola.domain.tripBoard.entity;
 
-import com.mola.domain.member.dto.MemberCommentDto;
+import com.mola.domain.member.dto.MemberTripPostDto;
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.tripBoard.dto.CommentDto;
 import jakarta.persistence.*;
@@ -34,7 +34,7 @@ public class Comment {
     public static CommentDto toCommentDto(Comment comment){
         return CommentDto.builder()
                 .content(comment.getContent())
-                .memberCommentDto(new MemberCommentDto(comment.getMember().getId(),
+                .memberTripPostDto(new MemberTripPostDto(comment.getMember().getId(),
                         comment.getMember().getNickname()))
                 .build();
     }
