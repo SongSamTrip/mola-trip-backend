@@ -59,6 +59,11 @@ public class TripPost {
         this.member.deleteTripPost(this);
     }
 
+    public void deleteLikes(Likes likes){
+        this.likes.remove(likes);
+        this.likeCount--;
+    }
+
     public void addComment(Comment comment){
         this.comments.add(comment);
     }
