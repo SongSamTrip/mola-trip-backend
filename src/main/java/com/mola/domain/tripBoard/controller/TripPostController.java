@@ -71,24 +71,28 @@ public class TripPostController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteTripPost(@PathVariable Long id){
+    public ResponseEntity<?> deleteTripPost(@PathVariable Long id){
         tripPostService.deleteTripPost(id);
-
-        return ResponseEntity.ok("게시글이 삭제되었습니다.");
-    }
-
-    @PostMapping("/likes")
-    public ResponseEntity<?> addLike(@RequestParam("tripPostId") Long tripPostId){
-        tripPostService.addLikes(tripPostId);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/likes")
-    public ResponseEntity<?> removeLike(@RequestParam("tripPostId") Long tripPostId){
-//        tripPostService.removeLikes(tripPostId);
+    @PostMapping("/{id}/likes")
+    public ResponseEntity<?> addLike(@PathVariable("id") Long tripPostId){
+        try {
+            tripPostService.addLikes(tripPostId);
+        } catch (InterruptedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
         return ResponseEntity.ok().build();
     }
 
-
-
+    @DeleteMapping("/{id}/likes")
+    public ResponseEntity<?> removeLike(@RequestParam("id") Long tripPostId){
+        try {
+            tripPostService.removeLikes(tripPostId);
+        } catch (InterruptedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        return ResponseEntity.ok().build();
+    }
 }
