@@ -1,18 +1,13 @@
 package com.mola.domain.tripBoard.entity;
 
 import com.mola.domain.member.entity.Member;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"member", "tripPost"})
+@Setter
 @Getter
 @Entity
 public class Likes {
@@ -21,10 +16,10 @@ public class Likes {
     @GeneratedValue
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Member member;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private TripPost tripPost;
 
     public void updateRelatedEntities(){

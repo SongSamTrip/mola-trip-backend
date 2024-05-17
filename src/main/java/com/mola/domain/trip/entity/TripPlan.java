@@ -1,13 +1,10 @@
 package com.mola.domain.trip.entity;
 
 import com.mola.domain.trip.repository.TripStatus;
+import com.mola.domain.tripBoard.entity.TripPost;
 import com.mola.domain.tripFriends.TripFriends;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -36,6 +33,9 @@ public class TripPlan {
 
     @Column(name = "trip_end_date", nullable = false)
     private LocalDateTime endDate;
+
+    @OneToOne(mappedBy = "tripPlan")
+    private TripPost tripPost;
 
     @Column(name = "trip_code", length = 100)
     private String tripCode;

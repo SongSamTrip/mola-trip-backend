@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class MemberCommentDto {
+public class MemberTripPostDto {
 
     private Long id;
 

@@ -15,6 +15,7 @@ import jakarta.transaction.Transactional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -26,7 +27,8 @@ public class TripPlanService {
 
     private final SecurityUtil securityUtil;
 
-    public String addTripPlan(NewTripPlanDto newTripPlanDto) {
+    @Transactional
+    public void addTripPlan(NewTripPlanDto newTripPlanDto) {
 
         Member member = securityUtil.findCurrentMember();
 
@@ -48,10 +50,10 @@ public class TripPlanService {
 
         tripFriendsRepository.save(tripFriends);
 
-        return tripPlan.toString();
     }
 
     @Transactional
+
     public void updateTripPlanList(Long tripId, TripListHtmlDto tripListHtmlDto) {
         TripPlan tripPlan = getMemberTripPlan(tripId);
 
@@ -77,5 +79,20 @@ public class TripPlanService {
                 .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidTripFriends));
 
         return tripPlan;
+
+    @Transactional
+    public void addParticipant(String tripCode) {
+        Member member = securityUtil.findCurrentMember();
+
+        TripPlan tripPlan = tripPlanRepository.findByTripCode(tripCode)
+                .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidTripPlan));
+
+        TripFriends tripFriends = TripFriends.builder()
+                .member(member)
+                .tripPlan(tripPlan)
+                .isOwner(false)
+                .build();
+
+        tripFriendsRepository.save(tripFriends);
     }
 }

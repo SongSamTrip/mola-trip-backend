@@ -2,6 +2,7 @@ package com.mola.domain.chat;
 
 import com.mola.domain.chat.common.ChatInterceptor;
 import com.mola.domain.tripFriends.TripFriendsService;
+import com.mola.global.auth.JwtProvider;
 import com.mola.global.exception.CustomException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,8 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.GenericMessage;
@@ -27,7 +30,9 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,6 +47,8 @@ class ChatInterceptorTest {
     TripFriendsService tripFriendsService;
     @Mock
     SecurityContext securityContext;
+    @Mock
+    JwtProvider jwtProvider;
     @InjectMocks
     ChatInterceptor chatInterceptor;
 
@@ -62,8 +69,11 @@ class ChatInterceptorTest {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setDestination("/sub/chat/" + VALID_ID);
         Message message = new GenericMessage(new byte[0], accessor.toMap());
+        Authentication auth = createAuthentication(VALID_ID);
+
         when(securityContext.getAuthentication()).thenReturn(createAuthentication(VALID_ID));
         when(tripFriendsService.existsByMemberAndTripPlan(anyLong(), anyLong())).thenReturn(true);
+        doReturn(auth).when(jwtProvider).extractAuthenticationFromStompHeaderAccessor(any());
 
         // expect
         assertDoesNotThrow(() -> chatInterceptor.preSend(message, messageChannel));
@@ -77,10 +87,11 @@ class ChatInterceptorTest {
         accessor.setDestination("/sub/" + VALID_ID);
         Message message = new GenericMessage(new byte[0], accessor.toMap());
         Authentication auth = createAuthentication(INVALID_ID);
-        when(securityContext.getAuthentication()).thenReturn(auth);
+        doReturn(auth).when(jwtProvider).extractAuthenticationFromStompHeaderAccessor(any());
+
 
         // expect
-        assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
+        assertThrows(MessageDeliveryException.class, () -> chatInterceptor.preSend(message, messageChannel));
     }
 
     @DisplayName("사용자 정보가 없는 메시지 요청은 에러를 반환")
@@ -90,10 +101,11 @@ class ChatInterceptorTest {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setDestination("/sub/" + VALID_ID);
         Message message = new GenericMessage(new byte[0], accessor.toMap());
-        when(securityContext.getAuthentication()).thenReturn(null);
+        doReturn(null).when(jwtProvider).extractAuthenticationFromStompHeaderAccessor(any());
+
 
         // expect
-        assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
+        assertThrows(MessageDeliveryException.class, () -> chatInterceptor.preSend(message, messageChannel));
     }
 
     @DisplayName("목적지 경로가 잘못된 메시지는 에러를 반환")
@@ -103,10 +115,12 @@ class ChatInterceptorTest {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setDestination("/wrong");
         Message message = new GenericMessage(new byte[0], accessor.toMap());
-        when(securityContext.getAuthentication()).thenReturn(createAuthentication(VALID_ID));
+        Authentication auth = createAuthentication(VALID_ID);
+        doReturn(auth).when(jwtProvider).extractAuthenticationFromStompHeaderAccessor(any());
+
 
         // expect
-        assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
+        assertThrows(MessageDeliveryException.class, () -> chatInterceptor.preSend(message, messageChannel));
     }
 
     @DisplayName("목적지 경로가 없는 메시지는 에러를 반환")
@@ -115,10 +129,11 @@ class ChatInterceptorTest {
         // given
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         Message message = new GenericMessage(new byte[0], accessor.toMap());
-        when(securityContext.getAuthentication()).thenReturn(createAuthentication(VALID_ID));
+        Authentication auth = createAuthentication(VALID_ID);
+        doReturn(auth).when(jwtProvider).extractAuthenticationFromStompHeaderAccessor(any());
 
         // expect
-        assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
+        assertThrows(MessageDeliveryException.class, () -> chatInterceptor.preSend(message, messageChannel));
     }
 
 
@@ -129,10 +144,11 @@ class ChatInterceptorTest {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setDestination("/sub/wrong");
         Message message = new GenericMessage(new byte[0], accessor.toMap());
-        when(securityContext.getAuthentication()).thenReturn(createAuthentication(VALID_ID));
+        Authentication auth = createAuthentication(VALID_ID);
+        doReturn(auth).when(jwtProvider).extractAuthenticationFromStompHeaderAccessor(any());
 
         // expect
-        assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
+        assertThrows(MessageDeliveryException.class, () -> chatInterceptor.preSend(message, messageChannel));
     }
 
     @DisplayName("회원이 속한 여행플랜이 아닌 메시지는 에러를 반환")
@@ -143,10 +159,12 @@ class ChatInterceptorTest {
         accessor.setDestination("/sub/" + VALID_ID);
         Message message = new GenericMessage(new byte[0], accessor.toMap());
         when(securityContext.getAuthentication()).thenReturn(createAuthentication(INVALID_ID));
+        Authentication auth = createAuthentication(VALID_ID);
+        doReturn(auth).when(jwtProvider).extractAuthenticationFromStompHeaderAccessor(any());
         when(tripFriendsService.existsByMemberAndTripPlan(anyLong(), anyLong())).thenReturn(false);
 
         // expect
-        assertThrows(CustomException.class, () -> chatInterceptor.preSend(message, messageChannel));
+        assertThrows(MessageDeliveryException.class, () -> chatInterceptor.preSend(message, messageChannel));
     }
 
     private Authentication createAuthentication(String username) {

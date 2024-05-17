@@ -5,6 +5,8 @@ import com.mola.domain.tripBoard.entity.Comment;
 import com.mola.domain.tripBoard.entity.Likes;
 import com.mola.domain.tripBoard.entity.TripPost;
 import com.mola.domain.tripBoard.entity.TripPostStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 
 import java.util.ArrayList;
 
@@ -36,5 +38,9 @@ public class Fixture {
 
     public static Likes createLikes(Long id, Member member, TripPost tripPost){
         return new Likes(id, member, tripPost);
+    }
+
+    public static Authentication createAuthentication(String username){
+        return new UsernamePasswordAuthenticationToken(username, "ROLE_USER");
     }
 }

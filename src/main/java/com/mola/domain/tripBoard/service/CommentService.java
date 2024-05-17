@@ -52,7 +52,7 @@ public class CommentService {
         if(!byId.isTripPostPublic()){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
-        Member member = memberRepository.findById(commentDto.getMemberCommentDto().getId())
+        Member member = memberRepository.findById(commentDto.getMemberTripPostDto().getId())
                 .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidMemberIdentifierFormat));
 
         Comment entity = commentDto.toEntity(commentDto.getContent(), member, byId);
@@ -65,7 +65,7 @@ public class CommentService {
         if(!byId.isTripPostPublic()){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
-        Member member = memberRepository.findById(commentDto.getMemberCommentDto().getId())
+        Member member = memberRepository.findById(commentDto.getMemberTripPostDto().getId())
                 .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidMemberIdentifierFormat));
 
         String name = SecurityContextHolder.getContext().getAuthentication().getName();

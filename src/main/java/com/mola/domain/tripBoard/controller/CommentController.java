@@ -34,7 +34,7 @@ public class CommentController {
         return ResponseEntity.ok(save);
     }
 
-    @PutMapping("/tripPotss/{tripPostId}/comments/{commentId}")
+    @PutMapping("/tripPosts/{tripPostId}/comments/{commentId}")
     public ResponseEntity<CommentDto> updateComment(@PathVariable("tripPostId") Long tripPostId,
                                                     @PathVariable("commentId") Long commentId,
                                                     @RequestBody CommentDto commentDto){

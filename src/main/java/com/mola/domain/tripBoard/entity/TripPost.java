@@ -1,6 +1,7 @@
 package com.mola.domain.tripBoard.entity;
 
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.trip.entity.TripPlan;
 import com.mola.domain.tripBoard.dto.TripPostListResponseDto;
 import com.mola.domain.tripBoard.dto.TripPostResponseDto;
 import jakarta.persistence.*;
@@ -24,6 +25,10 @@ public class TripPost {
     private String name;
     @ManyToOne
     private Member member;
+
+    @OneToOne
+    private TripPlan tripPlan;
+
     @Column(length = 50)
     private String preview;
     private String content;
@@ -40,13 +45,23 @@ public class TripPost {
     @Builder.Default
     @OneToMany(mappedBy = "tripPost", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Likes> likes = new ArrayList<>();
+
     private int likeCount;
+
+    @Version
+    private Long version;
+
 
 
     public void deleteRelateEntities(){
         this.comments.forEach(member::deleteComment);
         this.likes.forEach(member::deleteLikes);
         this.member.deleteTripPost(this);
+    }
+
+    public void deleteLikes(Likes likes){
+        this.likes.remove(likes);
+        this.likeCount--;
     }
 
     public void addComment(Comment comment){
@@ -69,7 +84,7 @@ public class TripPost {
     }
 
     public void toPublic() {
-        this.tripPostStatus = TripPostStatus.DRAFT;
+        this.tripPostStatus = TripPostStatus.PUBLIC;
     }
 
 
