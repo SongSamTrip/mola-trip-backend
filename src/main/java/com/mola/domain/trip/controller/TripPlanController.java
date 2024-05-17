@@ -1,6 +1,7 @@
 package com.mola.domain.trip.controller;
 
 import com.mola.domain.trip.dto.NewTripPlanDto;
+import com.mola.domain.trip.dto.TripListHtmlDto;
 import com.mola.domain.trip.service.TripPlanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +26,16 @@ public class TripPlanController {
     }
 
     @PutMapping("/trip-plan/list/{tripId}")
-    public ResponseEntity<String> updateTripPlan(@PathVariable Long tripId, @RequestBody NewTripPlanDto newTripPlanDto) {
-        tripPlanService.updateTripPlanList(tripId, newTripPlanDto);
-        return ResponseEntity.ok("Trip plan updated success");
+    public ResponseEntity<String> updateTripPlan(@PathVariable Long tripId, @RequestBody TripListHtmlDto tripListHtmlDto) {
+        tripPlanService.updateTripPlanList(tripId, tripListHtmlDto);
+        // TODO : SSE
+        return ResponseEntity.ok("Trip plan updated successfully");
+    }
+
+    @PutMapping("/trip-plan/sub-list/{tripId}")
+    public ResponseEntity<String> updateSubList(@PathVariable("tripId") Long tripId, @RequestBody TripListHtmlDto tripListHtmlDto) {
+        tripPlanService.updateSubPlanList(tripId, tripListHtmlDto);
+        // TODO : SSE
+        return ResponseEntity.ok("Trip sub plan updated successfully");
     }
 }

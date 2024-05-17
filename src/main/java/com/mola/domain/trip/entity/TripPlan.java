@@ -48,9 +48,8 @@ public class TripPlan {
     )
     private List<TripFriends> tripFriendsList;
 
-    @Column(name = "main_trip_list")
+    @Column(name = "main_trip_list", columnDefinition = "TEXT")
     private String mainTripList;
 
-    @Column(name = "sub_trip_list")
-    private String subTripList;
-}
+    @Column(name = "sub_trip_list", columnDefinition = "TEXT")
+    private String subTripList;}

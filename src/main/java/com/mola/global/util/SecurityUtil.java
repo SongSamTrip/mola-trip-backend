@@ -18,8 +18,11 @@ public class SecurityUtil {
 
     public Member findCurrentMember() {
         UserDetails userDetails = getAuthenticatedUser();
-
         return validateMember(userDetails.getUsername());
+    }
+
+    public Long findCurrentMemberId() {
+        return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
     public UserDetails getAuthenticatedUser() {
