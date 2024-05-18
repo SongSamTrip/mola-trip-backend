@@ -1,5 +1,6 @@
 package com.mola.domain.tripBoard.entity;
 
+import com.mola.domain.tripBoard.dto.TripImageDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,6 +23,15 @@ public class TripImage {
         this.tripPost = tripPost;
     }
 
+    public TripImageDto toDto(){
+        Long tripPostId = (this.getTripPost() != null) ? this.getTripPost().getId() : null;
+
+        return TripImageDto.builder()
+                .id(this.id)
+                .url(this.url)
+                .tripPostId(tripPostId)
+                .build();
+    }
     public void setTripPostNull(){
         this.tripPost = null;
     }
