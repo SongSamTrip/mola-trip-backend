@@ -1,6 +1,6 @@
 package com.mola.domain.tripBoard.controller;
 
-import com.mola.domain.tripBoard.service.S3Service;
+import com.mola.domain.tripBoard.entity.TripImage;
 import com.mola.domain.tripBoard.service.TripImageService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,11 +35,12 @@ class ImageControllerTest {
         String VALID_ID = "1";
         MockMultipartFile multipartFile = new MockMultipartFile("file", "test.img"
                 , "image/jpeg", "Test Image Content".getBytes());
+        doReturn(new TripImage()).when(tripImageService).save(anyLong(), any());
 
         // when
         mockMvc.perform(multipart("/images")
                 .file(multipartFile)
-                .param("tripPlanId", VALID_ID)
+                .param("tripPostId", VALID_ID)
                 .with(csrf()))
                 .andDo(print());
 
