@@ -28,6 +28,9 @@ public class TripPlan {
     @Column(name = "trip_name", length = 100, nullable = false)
     private String tripName;
 
+    @Column(name = "total_trip_member")
+    private Long totalTripMember;
+
     @Column(name = "trip_start_date", nullable = false)
     private LocalDateTime startDate;
 
