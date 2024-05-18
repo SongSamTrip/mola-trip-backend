@@ -4,6 +4,7 @@ import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 @Builder
 @Setter
 @Getter
@@ -13,5 +14,5 @@ public class TripImageDto {
 
     private String url;
 
-    private Long tripPlanId;
+    private Long tripPostId;
 }
