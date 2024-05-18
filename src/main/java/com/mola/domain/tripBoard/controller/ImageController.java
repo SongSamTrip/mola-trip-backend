@@ -1,5 +1,6 @@
 package com.mola.domain.tripBoard.controller;
 
+import com.mola.domain.tripBoard.dto.TripImageDto;
 import com.mola.domain.tripBoard.entity.TripImage;
 import com.mola.domain.tripBoard.service.TripImageService;
 import lombok.RequiredArgsConstructor;
@@ -16,13 +17,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class ImageController {
 
     private final TripImageService tripImageService;
-
     @PostMapping
-    public ResponseEntity<TripImage> uploadImage(@RequestParam("tripPlanId") Long id,
-                                              @RequestParam MultipartFile file) {
+    public ResponseEntity<TripImageDto> uploadImage(@RequestParam("tripPostId") Long id,
+                                                    @RequestParam MultipartFile file) {
 
         TripImage tripImage = tripImageService.save(id, file);
+        TripImageDto tripImageDto = tripImage.toDto();
 
-        return ResponseEntity.ok(tripImage);
+        return ResponseEntity.ok(tripImageDto);
     }
 }
