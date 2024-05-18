@@ -3,6 +3,9 @@ package com.mola.domain.tripBoard.service;
 import com.mola.domain.tripBoard.entity.TripImage;
 import com.mola.domain.tripBoard.entity.TripPost;
 import com.mola.domain.tripBoard.repository.TripImageRepository;
+import com.mola.global.exception.CustomException;
+import com.mola.global.exception.GlobalErrorCode;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,9 +21,14 @@ public class TripImageService {
     private final TripImageRepository tripImageRepository;
     private final TripPostService tripPostService;
     private final ImageService imageService;
+    private final EntityManager entityManager;
 
+    @Transactional
     public TripImage save(Long id, MultipartFile file) {
-        TripPost tripPost = tripPostService.findById(id);
+        if(!tripPostService.existsTripPost(id)){
+            throw new CustomException(GlobalErrorCode.InvalidTripPostIdentifier);
+        }
+        TripPost tripPost = entityManager.getReference(TripPost.class, id);
         String imageUrl = imageService.upload(file);
 
         return tripImageRepository.save(new TripImage(imageUrl, tripPost));
