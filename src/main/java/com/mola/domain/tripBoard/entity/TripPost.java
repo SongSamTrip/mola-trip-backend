@@ -26,30 +26,41 @@ public class TripPost {
     @ManyToOne
     private Member member;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     private TripPlan tripPlan;
 
     @Column(length = 50)
     private String preview;
+
+    @Lob
     private String content;
+
     private TripPostStatus tripPostStatus;
 
     @Builder.Default
-    @OneToMany(mappedBy = "tripPost", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "tripPost",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.REMOVE,
+            orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "tripPost", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "tripPost",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.REMOVE)
     private List<TripImage> imageUrl = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "tripPost", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "tripPost",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.REMOVE,
+            orphanRemoval = true)
     private List<Likes> likes = new ArrayList<>();
 
     private int likeCount;
 
     @Version
-    private Long version;
+    private Long version = 0L;
 
 
 
