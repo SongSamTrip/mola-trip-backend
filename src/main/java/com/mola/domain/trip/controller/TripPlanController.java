@@ -2,13 +2,16 @@ package com.mola.domain.trip.controller;
 
 import com.mola.domain.trip.dto.NewTripPlanDto;
 import com.mola.domain.trip.dto.TripListHtmlDto;
+import com.mola.domain.trip.dto.TripPlanDto;
 import com.mola.domain.trip.service.TripPlanService;
 import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -24,20 +27,19 @@ public class TripPlanController {
     private final TripPlanService tripPlanService;
 
     @PostMapping("/trip-plan")
-    public ResponseEntity<String> createTripPlan(@Valid @RequestBody NewTripPlanDto newTripPlanDto, Errors errors) {
+    public ResponseEntity<Long> createTripPlan(@Valid @RequestBody NewTripPlanDto newTripPlanDto, Errors errors) {
 
         if(errors.hasErrors()){
             throw new CustomException(GlobalErrorCode.MissingRequireData);
         }
-
-        tripPlanService.addTripPlan(newTripPlanDto);
-        return ResponseEntity.ok("Add trip plan success");
+        Long tripPlanId = tripPlanService.addTripPlan(newTripPlanDto);
+        return ResponseEntity.ok(tripPlanId);
     }
 
     @PostMapping("/trip-plan/{tripCode}")
-    public ResponseEntity<String> addParticipant(@PathVariable("tripCode") String tripCode) {
-        tripPlanService.addParticipant(tripCode);
-        return ResponseEntity.ok("Add participant to trip plan success");
+    public ResponseEntity<Long> addParticipant(@PathVariable("tripCode") String tripCode) {
+        Long tripPlanId = tripPlanService.addParticipant(tripCode);
+        return ResponseEntity.ok(tripPlanId);
     }
 
     @PutMapping("/trip-plan/list/{tripId}")
@@ -53,4 +55,11 @@ public class TripPlanController {
         // TODO : SSE
         return ResponseEntity.ok("Trip sub plan updated successfully");
     }
+
+    @GetMapping("/trip-plan/lists")
+    public ResponseEntity<List<TripPlanDto>> getTripPlanList(){
+        List<TripPlanDto> tripPlans = tripPlanService.getTripPlans();
+        return ResponseEntity.ok(tripPlans);
+    }
+
 }

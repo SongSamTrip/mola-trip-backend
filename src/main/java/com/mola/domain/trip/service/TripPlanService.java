@@ -3,6 +3,7 @@ package com.mola.domain.trip.service;
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.trip.dto.NewTripPlanDto;
 import com.mola.domain.trip.dto.TripListHtmlDto;
+import com.mola.domain.trip.dto.TripPlanDto;
 import com.mola.domain.trip.entity.TripPlan;
 import com.mola.domain.trip.repository.TripPlanRepository;
 import com.mola.domain.trip.repository.TripStatus;
@@ -12,10 +13,13 @@ import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
 import com.mola.global.util.SecurityUtil;
 import jakarta.transaction.Transactional;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -28,7 +32,7 @@ public class TripPlanService {
     private final SecurityUtil securityUtil;
 
     @Transactional
-    public void addTripPlan(NewTripPlanDto newTripPlanDto) {
+    public Long addTripPlan(NewTripPlanDto newTripPlanDto) {
 
         Member member = securityUtil.findCurrentMember();
 
@@ -38,6 +42,7 @@ public class TripPlanService {
                 .tripName(newTripPlanDto.getTripName())
                 .tripCode(UUID.randomUUID().toString())
                 .tripStatus(TripStatus.ACTIVE)
+                .totalTripMember(1L)
                 .build();
 
         TripPlan newTripPlan = tripPlanRepository.save(tripPlan);
@@ -49,11 +54,10 @@ public class TripPlanService {
                 .build();
 
         tripFriendsRepository.save(tripFriends);
-
+        return newTripPlan.getId();
     }
 
     @Transactional
-
     public void updateTripPlanList(Long tripId, TripListHtmlDto tripListHtmlDto) {
         TripPlan tripPlan = getMemberTripPlan(tripId);
 
@@ -79,13 +83,22 @@ public class TripPlanService {
                 .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidTripFriends));
 
         return tripPlan;
+    }
 
     @Transactional
-    public void addParticipant(String tripCode) {
+    public Long addParticipant(String tripCode) {
         Member member = securityUtil.findCurrentMember();
 
         TripPlan tripPlan = tripPlanRepository.findByTripCode(tripCode)
                 .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidTripPlan));
+
+        Optional<TripFriends> existingTripFriends = tripFriendsRepository.findByMemberAndTripPlan(member.getId(), tripPlan.getId());
+        if (existingTripFriends.isPresent()) {
+            return tripPlan.getId();
+        }
+
+        tripPlan.setTotalTripMember(tripPlan.getTotalTripMember() + 1);
+        tripPlanRepository.save(tripPlan);
 
         TripFriends tripFriends = TripFriends.builder()
                 .member(member)
@@ -94,5 +107,37 @@ public class TripPlanService {
                 .build();
 
         tripFriendsRepository.save(tripFriends);
+        return tripPlan.getId();
+    }
+
+    public List<TripPlanDto> getTripPlans() {
+        Long memberId = securityUtil.findCurrentMemberId();
+        List<TripFriends> tripFriendsList = tripFriendsRepository.findAllByMemberId(memberId);
+
+
+        if (tripFriendsList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Long> tripPlanIds = tripFriendsList.stream()
+                .map(tripFriends -> tripFriends.getTripPlan().getId())
+                .distinct()
+                .collect(Collectors.toList());
+
+        List<TripPlan> tripPlans = tripPlanRepository.findAllById(tripPlanIds);
+
+        return tripPlans.stream()
+                .map(this::convertTripPlansToDto)
+                .collect(Collectors.toList());
+    }
+
+    private TripPlanDto convertTripPlansToDto(TripPlan tripPlan) {
+
+        return TripPlanDto.builder()
+                .tripName(tripPlan.getTripName())
+                .tripId(tripPlan.getId())
+                .tripImageUrl("https://picsum.photos/200")
+                .totalTripMember(tripPlan.getTotalTripMember())
+                .build();
     }
 }
