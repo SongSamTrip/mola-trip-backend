@@ -5,14 +5,10 @@ import com.mola.domain.tripBoard.entity.Likes;
 import com.mola.domain.tripBoard.entity.TripPost;
 import com.mola.domain.tripFriends.TripFriends;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -53,7 +49,7 @@ public class Member {
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private List<Likes> likes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private List<Comment> comments;
 
     @Column(name = "refresh_token", length = 512)
