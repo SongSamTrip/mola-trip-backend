@@ -211,4 +211,14 @@ public class TripPostService {
 
         return authentication.getName().equals(String.valueOf(byId.getMember().getId()));
     }
+
+    private MemberTripPostDto findValidMember(Long memberId) {
+        return memberRepository.findMemberTripPostDtoById(memberId)
+                .orElseThrow(() -> new CustomException(GlobalErrorCode.AccessDenied));
+    }
+
+    public Long getMemberId() {
+        Long memberId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+        return memberId;
+    }
 }
