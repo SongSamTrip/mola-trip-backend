@@ -19,7 +19,7 @@ public class ImageController {
     private final TripImageService tripImageService;
     @PostMapping
     public ResponseEntity<TripImageDto> uploadImage(@RequestParam("tripPostId") Long id,
-                                                    @RequestParam MultipartFile file) {
+                                                    @RequestParam("file") MultipartFile file) {
 
         TripImage tripImage = tripImageService.save(id, file);
         TripImageDto tripImageDto = tripImage.toDto();
