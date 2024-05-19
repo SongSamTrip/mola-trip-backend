@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface TripPostRepository extends JpaRepository<TripPost, Long>, TripPostQueryRepository {
 
@@ -16,5 +17,5 @@ public interface TripPostRepository extends JpaRepository<TripPost, Long>, TripP
 
     @Lock(LockModeType.OPTIMISTIC)
     @Query("SELECT tp FROM TripPost tp WHERE tp.id = :id")
-    TripPost findByIdWithOptimisticLock(Long id);
+    TripPost findByIdWithOptimisticLock(@Param("id") Long id);
 }
