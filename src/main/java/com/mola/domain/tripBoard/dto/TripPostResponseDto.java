@@ -4,9 +4,6 @@ import com.mola.domain.tripBoard.entity.TripPostStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
@@ -18,7 +15,9 @@ public class TripPostResponseDto {
     @NotNull
     private Long id;
 
-    private String writer;
+    private Long memberId;
+
+    private String nickname;
 
     @NotNull
     private String name;
@@ -29,9 +28,6 @@ public class TripPostResponseDto {
     private TripPostStatus tripPostStatus;
 
     private int commentCount;
-
-    @Builder.Default
-    private List<String> imageList = new ArrayList<>();
 
     private int likeCount;
 }
