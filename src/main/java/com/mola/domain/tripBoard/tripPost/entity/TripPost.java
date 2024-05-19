@@ -91,8 +91,9 @@ public class TripPost {
         return this.tripPostStatus == TripPostStatus.PUBLIC;
     }
 
-    public static TripPost createDraft(){
+    public static TripPost createDraft(Member member){
         TripPost tripPost = new TripPost();
+        tripPost.setMember(member);
         tripPost.setTripPostStatus(TripPostStatus.DRAFT);
         return tripPost;
     }
