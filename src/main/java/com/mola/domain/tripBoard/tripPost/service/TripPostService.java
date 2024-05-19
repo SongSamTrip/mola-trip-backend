@@ -4,15 +4,16 @@ import com.mola.domain.member.dto.MemberTripPostDto;
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.member.repository.MemberRepository;
 import com.mola.domain.tripBoard.like.entity.Likes;
-import com.mola.domain.tripBoard.tripImage.entity.TripImage;
-import com.mola.domain.tripBoard.tripImage.dto.TripImageDto;
-import com.mola.domain.tripBoard.tripPost.entity.TripPost;
 import com.mola.domain.tripBoard.like.repository.LikesRepository;
-import com.mola.domain.tripBoard.tripPost.repository.TripPostRepository;
+import com.mola.domain.tripBoard.tripImage.dto.TripImageDto;
+import com.mola.domain.tripBoard.tripImage.entity.TripImage;
+import com.mola.domain.tripBoard.tripImage.repository.TripImageRepository;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostListResponseDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostResponseDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostUpdateDto;
+import com.mola.domain.tripBoard.tripPost.entity.TripPost;
+import com.mola.domain.tripBoard.tripPost.repository.TripPostRepository;
 import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
 import jakarta.persistence.EntityManager;
@@ -38,13 +39,15 @@ public class TripPostService {
 
     private final TripPostRepository tripPostRepository;
 
+    private final TripImageRepository tripImageRepository;
+
     private final MemberRepository memberRepository;
 
     private final LikesRepository likesRepository;
 
     private final ModelMapper modelMapper;
 
-    private final EntityManager entityManager;
+    private final EntityManager em;
 
     private static final int MAX_RETRY = 3;
 
@@ -77,7 +80,10 @@ public class TripPostService {
     @Transactional
     public Map<String, Long> createDraftTripPost(){
         Long memberId = getMemberId();
-        Long tripPostId = tripPostRepository.save(TripPost.createDraft()).getId();
+        Member member = em.getReference(Member.class, memberId);
+
+        TripPost tripPost = TripPost.createDraft(member);
+        Long tripPostId = tripPostRepository.save(tripPost).getId();
 
         Map<String, Long> map = new HashMap<>();
 
@@ -89,10 +95,19 @@ public class TripPostService {
 
     @Transactional
     public TripPostResponseDto save(TripPostDto tripPostDto){
+        tripPostDto.getTripImageDtos().forEach(t -> {
+            tripImageRepository.toPublicImages(t.getId());
+        });
 
+        TripPost byId = findById(tripPostDto.getId());
 
+        log.info("tripPost : {}", byId.toString());
+        modelMapper.map(tripPostDto, byId);
+        TripPostResponseDto dto = modelMapper.map(byId, TripPostResponseDto.class);
+        dto.setMemberId(byId.getMember().getId());
+        dto.setNickname(byId.getMember().getNickname());
 
-        return new TripPostResponseDto();
+        return dto;
     }
 
     @Transactional
@@ -121,8 +136,7 @@ public class TripPostService {
         modelMapper.map(tripPostUpdateDto, tripPost);
         TripPost save = tripPostRepository.save(tripPost);
 
-//        return TripPost.toTripPostResponseDto(save);
-        return new TripPostResponseDto();
+        return tripPostRepository.getTripPostResponseDtoById(save.getId());
     }
 
     @Transactional
