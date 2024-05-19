@@ -18,7 +18,15 @@ public class TripImage {
     @ManyToOne(fetch = FetchType.LAZY)
     private TripPost tripPost;
 
+    private boolean flag;
+
     public TripImage(String url, TripPost tripPost) {
+        this.url = url;
+        this.tripPost = tripPost;
+    }
+
+    public TripImage(Long id, String url, TripPost tripPost) {
+        this.id = id;
         this.url = url;
         this.tripPost = tripPost;
     }
