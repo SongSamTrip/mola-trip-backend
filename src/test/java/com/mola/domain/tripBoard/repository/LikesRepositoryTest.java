@@ -6,12 +6,15 @@ import com.mola.domain.tripBoard.like.entity.Likes;
 import com.mola.domain.tripBoard.like.repository.LikesRepository;
 import com.mola.domain.tripBoard.tripPost.entity.TripPost;
 import com.mola.domain.tripBoard.tripPost.repository.TripPostRepository;
+import com.mola.global.config.QueryDslConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Import(QueryDslConfig.class)
 @DataJpaTest
 class LikesRepositoryTest {
 
@@ -24,23 +27,24 @@ class LikesRepositoryTest {
     @Autowired
     MemberRepository memberRepository;
 
+
     @Test
     void existsByMemberAndTripPost() {
-        TripPost tripPost = new TripPost();
-        TripPost save = tripPostRepository.save(tripPost);
-
         Member member = new Member();
         member.setNickname("test");
         member.setPersonalId("1");
         Member savedMember = memberRepository.save(member);
 
+        TripPost tripPost = new TripPost();
+        tripPost.setMember(savedMember);
+        TripPost savedTripPost = tripPostRepository.save(tripPost);
+
         Likes likes = new Likes();
         likes.setMember(savedMember);
-        likes.setTripPost(save);
-
+        likes.setTripPost(savedTripPost);
         likesRepository.save(likes);
 
-        assertTrue(likesRepository.existsByMemberIdAndTripPostId(savedMember.getId(), tripPost.getId()));
+        assertTrue(likesRepository.existsByMemberIdAndTripPostId(savedMember.getId(), savedTripPost.getId()));
     }
 
 }

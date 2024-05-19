@@ -2,16 +2,19 @@ package com.mola.domain.chat;
 
 import com.mola.domain.chat.entity.ChatMessage;
 import com.mola.domain.chat.repository.ChatMessageRepository;
+import com.mola.global.config.QueryDslConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 
 import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Import(QueryDslConfig.class)
 @DataJpaTest
 class ChatMessageRepositoryTest {
 
