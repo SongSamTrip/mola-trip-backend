@@ -77,7 +77,7 @@ public class TripPostService {
 
     @Transactional
     public Map<String, Long> createDraftTripPost() {
-        Long memberId = getMemberId();
+        Long memberId = getAuthenticatedMemberId();
         Member member = em.getReference(Member.class, memberId);
 
         TripPost tripPost = TripPost.createDraft(member);
@@ -140,84 +140,68 @@ public class TripPostService {
 
     @Transactional
     public void addLikes(Long tripPostId) throws InterruptedException {
-        int retryCount = 0;
+        Long memberId = getAuthenticatedMemberId();
+        validateTripPostAndMember(tripPostId, memberId, true);
 
-        Long memberId = getMemberId();
-
-        if(!tripPostRepository.existsById(tripPostId)){
-            throw new CustomException(GlobalErrorCode.InvalidTripPostIdentifier);
-        }
-
-        if(likesRepository.existsByMemberIdAndTripPostId(memberId, tripPostId)){
-            throw new CustomException(GlobalErrorCode.DuplicateLike);
-        }
-
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidMemberIdentifierFormat));
-
-
-        while(retryCount < MAX_RETRY) {
-            try {
-                TripPost post = tripPostRepository.findByIdWithOptimisticLock(tripPostId);
-                Likes likes = new Likes();
-                likes.setMember(member);
-                likes.setTripPost(post);
-
-                post.addLikes(likes);
-                member.addLikes(likes);
-                likesRepository.save(likes);
-                tripPostRepository.save(post);
-
-                return;
-            } catch (OptimisticLockException e) {
-                log.info("tripPostId: {} 충돌 발생", tripPostId);
-                Thread.sleep(RETRY_DELAY);
-                retryCount++;
-            }
-        }
-
-        log.error("tripPostId: {}에 대한 최대 재시도 횟수 {}를 초과했습니다.", tripPostId, MAX_RETRY);
-        throw new CustomException(GlobalErrorCode.ExcessiveRetries);
+        TripPost post = tripPostRepository.findByIdWithOptimisticLock(tripPostId);
+        performLikesOperation(post, memberId, true);
     }
-
 
     @Transactional
     public void removeLikes(Long tripPostId) throws InterruptedException {
-        int retryCount = 0;
+        Long memberId = getAuthenticatedMemberId();
+        validateTripPostAndMember(tripPostId, memberId, false);
 
-        Long memberId = getMemberId();
+        TripPost post = tripPostRepository.findByIdWithOptimisticLock(tripPostId);
+        performLikesOperation(post, memberId, false);
+    }
 
-        if(!tripPostRepository.existsById(tripPostId)){
+    private Long getAuthenticatedMemberId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new CustomException(GlobalErrorCode.AccessDenied);
+        }
+        return Long.valueOf(authentication.getName());
+    }
+
+    private void validateTripPostAndMember(Long tripPostId, Long memberId, boolean isAdding) {
+        if (!tripPostRepository.existsById(tripPostId)) {
             throw new CustomException(GlobalErrorCode.InvalidTripPostIdentifier);
         }
-
-        if(!likesRepository.existsByMemberIdAndTripPostId(memberId, tripPostId)){
+        if (isAdding && likesRepository.existsByMemberIdAndTripPostId(memberId, tripPostId)) {
+            throw new CustomException(GlobalErrorCode.DuplicateLike);
+        } else if (!isAdding && !likesRepository.existsByMemberIdAndTripPostId(memberId, tripPostId)) {
             throw new CustomException(GlobalErrorCode.BadRequest);
         }
+    }
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidMemberIdentifierFormat));
-
-
-        while(retryCount < MAX_RETRY) {
+    private void performLikesOperation(TripPost post, Long memberId, boolean isAdding) throws InterruptedException {
+        int retryCount = 0;
+        while (retryCount < MAX_RETRY) {
             try {
-                TripPost post = tripPostRepository.findByIdWithOptimisticLock(tripPostId);
-                Likes likes = likesRepository.findByMemberIdAndTripPostId(memberId, tripPostId);
-
-                post.deleteLikes(likes);
-                member.deleteLikes(likes);
-                likesRepository.delete(likes);
+                Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidMemberIdentifierFormat));
+                if (isAdding) {
+                    Likes likes = new Likes();
+                    likes.setMember(member);
+                    likes.setTripPost(post);
+                    post.addLikes(likes);
+                    member.addLikes(likes);
+                    likesRepository.save(likes);
+                } else {
+                    Likes likes = likesRepository.findByMemberIdAndTripPostId(memberId, post.getId());
+                    post.deleteLikes(likes);
+                    member.deleteLikes(likes);
+                    likesRepository.delete(likes);
+                }
                 tripPostRepository.save(post);
-
                 return;
             } catch (OptimisticLockException e) {
-                log.info("tripPostId: {} 충돌 발생", tripPostId);
+                log.info("tripPostId: {} 충돌 발생, 재시도 중...", post.getId());
                 Thread.sleep(RETRY_DELAY);
                 retryCount++;
             }
         }
-
-        log.error("tripPostId: {}에 대한 최대 재시도 횟수 {}를 초과했습니다.", tripPostId, MAX_RETRY);
+        log.error("tripPostId: {}에 대한 최대 재시도 횟수 {}를 초과했습니다.", post.getId(), MAX_RETRY);
         throw new CustomException(GlobalErrorCode.ExcessiveRetries);
     }
 
@@ -235,10 +219,5 @@ public class TripPostService {
     private MemberTripPostDto findValidMember(Long memberId) {
         return memberRepository.findMemberTripPostDtoById(memberId)
                 .orElseThrow(() -> new CustomException(GlobalErrorCode.AccessDenied));
-    }
-
-    public Long getMemberId() {
-        Long memberId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        return memberId;
     }
 }
