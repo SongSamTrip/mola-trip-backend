@@ -27,7 +27,7 @@ public class TripPostQueryRepositoryImpl implements TripPostQueryRepository{
                         tripPost.content,
                         tripPost.tripPostStatus,
                         tripPost.comments.size(),
-                        tripPost.likes.size()
+                        tripPost.likeCount
                 ))
                 .from(tripPost)
                 .join(tripPost.member, member)
