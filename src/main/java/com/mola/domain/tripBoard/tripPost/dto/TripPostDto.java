@@ -4,6 +4,7 @@ import com.mola.domain.tripBoard.tripImage.dto.TripImageDto;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -25,5 +26,6 @@ public class TripPostDto {
     @NotNull
     private String content;
 
-    private List<TripImageDto> tripImageDtos;
+    @Builder.Default
+    private List<TripImageDto> tripImageDtos = new ArrayList<>();
 }
