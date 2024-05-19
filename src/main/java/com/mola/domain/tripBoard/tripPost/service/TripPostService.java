@@ -55,13 +55,11 @@ public class TripPostService {
 
     public List<TripPostListResponseDto> getAllTripPosts(Pageable pageable) {
         Page<TripPost> all = tripPostRepository.findAll(pageable);
+        return all.stream().map(TripPost::toTripPostListResponseDto).collect(Collectors.toList());
+    }
 
-        List<TripPostListResponseDto> list = new ArrayList<>();
-        all.forEach(tripPost -> {
-            list.add(TripPost.toTripPostListResponseDto(tripPost));
-        });
-
-        return list;
+    public boolean isPublic(Long id) {
+        return tripPostRepository.isPublic(id);
     }
 
     public boolean existsTripPost(Long id){
@@ -78,19 +76,14 @@ public class TripPostService {
     }
 
     @Transactional
-    public Map<String, Long> createDraftTripPost(){
+    public Map<String, Long> createDraftTripPost() {
         Long memberId = getMemberId();
         Member member = em.getReference(Member.class, memberId);
 
         TripPost tripPost = TripPost.createDraft(member);
         Long tripPostId = tripPostRepository.save(tripPost).getId();
 
-        Map<String, Long> map = new HashMap<>();
-
-        map.put("memberId", memberId);
-        map.put("tempPostId", tripPostId);
-
-        return map;
+        return Map.of("memberId", memberId, "tempPostId", tripPostId);
     }
 
     @Transactional
@@ -101,7 +94,6 @@ public class TripPostService {
 
         TripPost byId = findById(tripPostDto.getId());
 
-        log.info("tripPost : {}", byId.toString());
         modelMapper.map(tripPostDto, byId);
         TripPostResponseDto dto = modelMapper.map(byId, TripPostResponseDto.class);
         dto.setMemberId(byId.getMember().getId());
@@ -111,32 +103,27 @@ public class TripPostService {
     }
 
     @Transactional
-    public TripPostResponseDto update(TripPostUpdateDto tripPostUpdateDto){
-        if(!isOwner(tripPostUpdateDto.getId())){
+    public TripPostResponseDto update(TripPostUpdateDto tripPostUpdateDto) {
+        if (!isOwner(tripPostUpdateDto.getId())) {
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
         TripPost tripPost = findById(tripPostUpdateDto.getId());
+        Set<Long> collect = tripPostUpdateDto.getTripImageList().stream().map(TripImageDto::getId).collect(Collectors.toSet());
 
-        Set<Long> collect = tripPostUpdateDto.getTripImageList().stream()
-                .map(TripImageDto::getId)
-                .collect(Collectors.toSet());
-
-        List<TripImage> tripImages = new ArrayList<>();
-
-        tripPost.getImageUrl().forEach(tripImage -> {
-            if(!collect.contains(tripImage.getId())){
-                tripImage.setTripPostNull();
-            } else {
-                tripImages.add(tripImage);
-            }
-        });
-
+        List<TripImage> tripImages = filterAndAssignTripImages(tripPost, collect);
         tripPost.setImageUrl(tripImages);
-
         modelMapper.map(tripPostUpdateDto, tripPost);
-        TripPost save = tripPostRepository.save(tripPost);
+        return tripPostRepository.getTripPostResponseDtoById(tripPostRepository.save(tripPost).getId());
+    }
 
-        return tripPostRepository.getTripPostResponseDtoById(save.getId());
+    private List<TripImage> filterAndAssignTripImages(TripPost tripPost, Set<Long> collect) {
+        return tripPost.getImageUrl().stream().filter(tripImage -> {
+            if (!collect.contains(tripImage.getId())) {
+                tripImage.setTripPostNull();
+                return false;
+            }
+            return true;
+        }).collect(Collectors.toList());
     }
 
     @Transactional
