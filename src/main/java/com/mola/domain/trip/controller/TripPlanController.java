@@ -6,6 +6,7 @@ import com.mola.domain.trip.dto.TripPlanDto;
 import com.mola.domain.trip.service.TripPlanService;
 import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
+import com.mola.global.sse.TripPlanSseRegistry;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RequiredArgsConstructor
 @RestController
@@ -25,6 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class TripPlanController {
 
     private final TripPlanService tripPlanService;
+
+    private final TripPlanSseRegistry sseRegistry;
 
     @PostMapping("/trip-plan")
     public ResponseEntity<Long> createTripPlan(@Valid @RequestBody NewTripPlanDto newTripPlanDto, Errors errors) {
@@ -36,23 +40,30 @@ public class TripPlanController {
         return ResponseEntity.ok(tripPlanId);
     }
 
+    @GetMapping("/trip-plan/{tripPlanId}")
+    public ResponseEntity<TripListHtmlDto> getTripPlan(@PathVariable("tripPlanId") Long tripPlanId) {
+        TripListHtmlDto tripListHtmlDto = tripPlanService.getTripList(tripPlanId);
+        return ResponseEntity.ok(tripListHtmlDto);
+    }
+
     @PostMapping("/trip-plan/{tripCode}")
     public ResponseEntity<Long> addParticipant(@PathVariable("tripCode") String tripCode) {
         Long tripPlanId = tripPlanService.addParticipant(tripCode);
         return ResponseEntity.ok(tripPlanId);
     }
 
+
     @PutMapping("/trip-plan/list/{tripId}")
-    public ResponseEntity<String> updateTripPlan(@PathVariable Long tripId, @RequestBody TripListHtmlDto tripListHtmlDto) {
-        tripPlanService.updateTripPlanList(tripId, tripListHtmlDto);
-        // TODO : SSE
+    public ResponseEntity<String> updateTripPlan(@PathVariable("tripId") Long tripId, @RequestBody TripListHtmlDto tripListHtmlDto) {
+        TripListHtmlDto newTripListHtmlDto = tripPlanService.updateTripPlanList(tripId, tripListHtmlDto);
+        sseRegistry.sendUpdate(tripId, newTripListHtmlDto);
         return ResponseEntity.ok("Trip plan updated successfully");
     }
 
     @PutMapping("/trip-plan/sub-list/{tripId}")
     public ResponseEntity<String> updateSubList(@PathVariable("tripId") Long tripId, @RequestBody TripListHtmlDto tripListHtmlDto) {
-        tripPlanService.updateSubPlanList(tripId, tripListHtmlDto);
-        // TODO : SSE
+        TripListHtmlDto newTripListHtmlDto = tripPlanService.updateSubPlanList(tripId, tripListHtmlDto);
+        sseRegistry.sendUpdate(tripId, newTripListHtmlDto);
         return ResponseEntity.ok("Trip sub plan updated successfully");
     }
 
@@ -61,5 +72,12 @@ public class TripPlanController {
         List<TripPlanDto> tripPlans = tripPlanService.getTripPlans();
         return ResponseEntity.ok(tripPlans);
     }
+
+    @GetMapping("/stream/trip-plans/{tripId}")
+    public SseEmitter streamTripPlan(@PathVariable("tripId") Long tripId) {
+        tripPlanService.checkMemberIsInTrip(tripId);
+        return sseRegistry.createEmitterForTrip(tripId);
+    }
+
 
 }
