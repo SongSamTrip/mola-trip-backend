@@ -2,13 +2,14 @@ package com.mola.domain.tripBoard.tripPost.repository;
 
 
 import com.mola.domain.tripBoard.tripPost.dto.TripPostResponseDto;
+import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import static com.mola.domain.member.entity.QMember.member;
-import static com.mola.domain.tripBoard.entity.QTripPost.tripPost;
+import static com.mola.domain.tripBoard.tripPost.entity.QTripPost.tripPost;
 
 @RequiredArgsConstructor
 @Repository
@@ -33,5 +34,15 @@ public class TripPostQueryRepositoryImpl implements TripPostQueryRepository{
                 .join(tripPost.member, member)
                 .where(tripPost.id.eq(tripPostId))
                 .fetchOne();
+    }
+
+    @Override
+    public boolean isPublic(Long id) {
+        TripPostStatus tripPostStatus = jpaQueryFactory.select(tripPost.tripPostStatus)
+                .from(tripPost)
+                .where(tripPost.id.eq(id))
+                .fetchOne();
+
+        return tripPostStatus == TripPostStatus.PUBLIC;
     }
 }

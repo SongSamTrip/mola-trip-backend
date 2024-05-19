@@ -6,4 +6,6 @@ public interface TripPostQueryRepository {
 
     TripPostResponseDto getTripPostResponseDtoById(Long tripPostId);
 
+    boolean isPublic(Long id);
+
 }
