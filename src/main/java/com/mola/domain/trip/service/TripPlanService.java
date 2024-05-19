@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -30,6 +31,8 @@ public class TripPlanService {
     private final TripFriendsRepository tripFriendsRepository;
 
     private final SecurityUtil securityUtil;
+
+    private final ModelMapper modelMapper;
 
     @Transactional
     public Long addTripPlan(NewTripPlanDto newTripPlanDto) {
@@ -58,19 +61,36 @@ public class TripPlanService {
     }
 
     @Transactional
-    public void updateTripPlanList(Long tripId, TripListHtmlDto tripListHtmlDto) {
+    public TripListHtmlDto updateTripPlanList(Long tripId, TripListHtmlDto tripListHtmlDto) {
         TripPlan tripPlan = getMemberTripPlan(tripId);
 
-        tripPlan.setSubTripList(tripListHtmlDto.getSubTripList());
-        tripPlan.setMainTripList(tripListHtmlDto.getMainTripList());
-        tripPlanRepository.save(tripPlan);
+        modelMapper.map(tripListHtmlDto, tripPlan);
+
+        tripPlan = tripPlanRepository.save(tripPlan);
+
+        return TripListHtmlDto.builder()
+                .mainTripList(tripPlan.getMainTripList())
+                .subTripList(tripPlan.getSubTripList())
+                .build();
     }
 
     @Transactional
-    public void updateSubPlanList(Long tripId, TripListHtmlDto tripListHtmlDto) {
+    public TripListHtmlDto updateSubPlanList(Long tripId, TripListHtmlDto tripListHtmlDto) {
         TripPlan tripPlan = getMemberTripPlan(tripId);
         tripPlan.setSubTripList(tripListHtmlDto.getSubTripList());
-        tripPlanRepository.save(tripPlan);
+        tripPlan = tripPlanRepository.save(tripPlan);
+        return TripListHtmlDto.builder()
+                .mainTripList(tripPlan.getMainTripList())
+                .subTripList(tripPlan.getSubTripList())
+                .build();
+    }
+
+    public TripListHtmlDto getTripList(Long tripPlanId) {
+        TripPlan tripPlan = getMemberTripPlan(tripPlanId);
+        return TripListHtmlDto.builder()
+                .mainTripList(tripPlan.getMainTripList())
+                .subTripList(tripPlan.getSubTripList())
+                .build();
     }
 
     private TripPlan getMemberTripPlan(Long tripId) {
@@ -92,7 +112,8 @@ public class TripPlanService {
         TripPlan tripPlan = tripPlanRepository.findByTripCode(tripCode)
                 .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidTripPlan));
 
-        Optional<TripFriends> existingTripFriends = tripFriendsRepository.findByMemberAndTripPlan(member.getId(), tripPlan.getId());
+        Optional<TripFriends> existingTripFriends = tripFriendsRepository.findByMemberAndTripPlan(member.getId(),
+                tripPlan.getId());
         if (existingTripFriends.isPresent()) {
             return tripPlan.getId();
         }
@@ -113,7 +134,6 @@ public class TripPlanService {
     public List<TripPlanDto> getTripPlans() {
         Long memberId = securityUtil.findCurrentMemberId();
         List<TripFriends> tripFriendsList = tripFriendsRepository.findAllByMemberId(memberId);
-
 
         if (tripFriendsList.isEmpty()) {
             return Collections.emptyList();
@@ -139,5 +159,10 @@ public class TripPlanService {
                 .tripImageUrl("https://picsum.photos/200")
                 .totalTripMember(tripPlan.getTotalTripMember())
                 .build();
+    }
+
+
+    public void checkMemberIsInTrip(Long tripId) {
+        getMemberTripPlan(tripId);
     }
 }
