@@ -1,6 +1,9 @@
 package com.mola.domain.tripBoard.entity;
 
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.tripBoard.comment.entity.Comment;
+import com.mola.domain.tripBoard.tripPost.entity.TripPost;
+import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
 import com.mola.fixture.Fixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

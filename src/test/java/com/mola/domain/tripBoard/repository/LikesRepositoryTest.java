@@ -2,8 +2,10 @@ package com.mola.domain.tripBoard.repository;
 
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.member.repository.MemberRepository;
-import com.mola.domain.tripBoard.entity.Likes;
-import com.mola.domain.tripBoard.entity.TripPost;
+import com.mola.domain.tripBoard.like.entity.Likes;
+import com.mola.domain.tripBoard.like.repository.LikesRepository;
+import com.mola.domain.tripBoard.tripPost.entity.TripPost;
+import com.mola.domain.tripBoard.tripPost.repository.TripPostRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;

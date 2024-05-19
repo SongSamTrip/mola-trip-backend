@@ -1,7 +1,7 @@
 package com.mola.domain.trip.entity;
 
 import com.mola.domain.trip.repository.TripStatus;
-import com.mola.domain.tripBoard.entity.TripPost;
+import com.mola.domain.tripBoard.tripPost.entity.TripPost;
 import com.mola.domain.tripFriends.TripFriends;
 import jakarta.persistence.*;
 

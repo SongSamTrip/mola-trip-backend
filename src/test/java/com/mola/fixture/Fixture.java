@@ -1,10 +1,10 @@
 package com.mola.fixture;
 
 import com.mola.domain.member.entity.Member;
-import com.mola.domain.tripBoard.entity.Comment;
-import com.mola.domain.tripBoard.entity.Likes;
-import com.mola.domain.tripBoard.entity.TripPost;
-import com.mola.domain.tripBoard.entity.TripPostStatus;
+import com.mola.domain.tripBoard.comment.entity.Comment;
+import com.mola.domain.tripBoard.like.entity.Likes;
+import com.mola.domain.tripBoard.tripPost.entity.TripPost;
+import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 

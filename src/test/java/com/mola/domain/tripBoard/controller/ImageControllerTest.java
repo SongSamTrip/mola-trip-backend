@@ -1,7 +1,8 @@
 package com.mola.domain.tripBoard.controller;
 
-import com.mola.domain.tripBoard.entity.TripImage;
-import com.mola.domain.tripBoard.service.TripImageService;
+import com.mola.domain.tripBoard.tripImage.entity.TripImage;
+import com.mola.domain.tripBoard.tripImage.service.TripImageService;
+import com.mola.domain.tripBoard.tripImage.controller.ImageController;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

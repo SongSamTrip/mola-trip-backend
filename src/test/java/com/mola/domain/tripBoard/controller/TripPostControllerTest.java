@@ -1,10 +1,11 @@
 package com.mola.domain.tripBoard.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mola.domain.tripBoard.dto.TripImageDto;
-import com.mola.domain.tripBoard.dto.TripPostDto;
-import com.mola.domain.tripBoard.dto.TripPostUpdateDto;
-import com.mola.domain.tripBoard.service.TripPostService;
+import com.mola.domain.tripBoard.tripImage.dto.TripImageDto;
+import com.mola.domain.tripBoard.tripPost.dto.TripPostDto;
+import com.mola.domain.tripBoard.tripPost.dto.TripPostUpdateDto;
+import com.mola.domain.tripBoard.tripPost.service.TripPostService;
+import com.mola.domain.tripBoard.tripPost.controller.TripPostController;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

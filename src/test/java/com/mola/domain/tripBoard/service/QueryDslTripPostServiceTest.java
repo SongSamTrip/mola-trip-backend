@@ -2,7 +2,8 @@ package com.mola.domain.tripBoard.service;
 
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.member.repository.MemberRepository;
-import com.mola.domain.tripBoard.repository.TripPostRepository;
+import com.mola.domain.tripBoard.tripPost.repository.TripPostRepository;
+import com.mola.domain.tripBoard.tripPost.service.TripPostService;
 import com.mola.fixture.Fixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

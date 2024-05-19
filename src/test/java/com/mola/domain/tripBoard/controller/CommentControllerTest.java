@@ -2,8 +2,9 @@ package com.mola.domain.tripBoard.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mola.domain.member.dto.MemberTripPostDto;
-import com.mola.domain.tripBoard.dto.CommentDto;
-import com.mola.domain.tripBoard.service.CommentService;
+import com.mola.domain.tripBoard.comment.controller.CommentController;
+import com.mola.domain.tripBoard.comment.dto.CommentDto;
+import com.mola.domain.tripBoard.comment.service.CommentService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

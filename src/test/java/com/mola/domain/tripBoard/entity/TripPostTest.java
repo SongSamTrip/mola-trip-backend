@@ -1,14 +1,14 @@
 package com.mola.domain.tripBoard.entity;
 
 import com.mola.domain.member.entity.Member;
-import com.mola.domain.tripBoard.dto.TripPostResponseDto;
+import com.mola.domain.tripBoard.comment.entity.Comment;
+import com.mola.domain.tripBoard.like.entity.Likes;
+import com.mola.domain.tripBoard.tripPost.entity.TripPost;
+import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
 import com.mola.fixture.Fixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 import static org.junit.jupiter.api.Assertions.*;

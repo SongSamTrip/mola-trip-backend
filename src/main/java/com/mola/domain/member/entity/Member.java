@@ -1,8 +1,8 @@
 package com.mola.domain.member.entity;
 
-import com.mola.domain.tripBoard.entity.Comment;
-import com.mola.domain.tripBoard.entity.Likes;
-import com.mola.domain.tripBoard.entity.TripPost;
+import com.mola.domain.tripBoard.comment.entity.Comment;
+import com.mola.domain.tripBoard.like.entity.Likes;
+import com.mola.domain.tripBoard.tripPost.entity.TripPost;
 import com.mola.domain.tripFriends.TripFriends;
 import jakarta.persistence.*;
 import lombok.*;
