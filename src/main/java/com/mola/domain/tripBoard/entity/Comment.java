@@ -3,7 +3,10 @@ package com.mola.domain.tripBoard.entity;
 import com.mola.domain.member.dto.MemberTripPostDto;
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.tripBoard.dto.CommentDto;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import lombok.*;
 
 @AllArgsConstructor
