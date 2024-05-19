@@ -9,6 +9,7 @@ import com.mola.domain.tripBoard.comment.repository.CommentRepository;
 import com.mola.domain.tripBoard.tripPost.service.TripPostService;
 import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,8 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final TripPostService tripPostService;
     private final MemberRepository memberRepository;
+
+    private final EntityManager entityManager;
 
     public List<CommentDto> getAllComments(Long tripPostId, Pageable pageable) {
         if(!tripPostService.existsTripPost(tripPostId)){
@@ -49,14 +52,17 @@ public class CommentService {
 
     @Transactional
     public CommentDto save(Long tripPostId, CommentDto commentDto){
-        TripPost byId = tripPostService.findById(tripPostId);
-        if(!byId.isTripPostPublic()){
+        if(!tripPostService.isPublic(tripPostId)){
+            throw new CustomException(GlobalErrorCode.InvalidTripPostIdentifier);
+        }
+
+        TripPost tripPost = entityManager.getReference(TripPost.class, tripPostId);
+
+        if(!memberRepository.existsById(commentDto.getMemberTripPostDto().getId())){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
-        Member member = memberRepository.findById(commentDto.getMemberTripPostDto().getId())
-                .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidMemberIdentifierFormat));
-
-        Comment entity = commentDto.toEntity(commentDto.getContent(), member, byId);
+        Member member = entityManager.getReference(Member.class, commentDto.getMemberTripPostDto().getId());
+        Comment entity = commentDto.toEntity(commentDto.getContent(), member, tripPost);
         return Comment.toCommentDto(commentRepository.save(entity));
     }
 
