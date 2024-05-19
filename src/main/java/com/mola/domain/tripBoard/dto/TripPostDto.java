@@ -16,7 +16,7 @@ public class TripPostDto {
     @NotNull
     private Long id;
 
-    private String writer;
+    private Long memberId;
 
     @NotNull
     private String name;
