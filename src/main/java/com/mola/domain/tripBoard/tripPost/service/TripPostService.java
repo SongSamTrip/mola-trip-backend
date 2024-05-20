@@ -3,9 +3,9 @@ package com.mola.domain.tripBoard.tripPost.service;
 import com.mola.domain.member.dto.MemberTripPostDto;
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.member.repository.MemberRepository;
+import com.mola.domain.tripBoard.comment.repository.CommentRepository;
 import com.mola.domain.tripBoard.like.entity.Likes;
 import com.mola.domain.tripBoard.like.repository.LikesRepository;
-import com.mola.domain.tripBoard.tripImage.dto.TripImageDto;
 import com.mola.domain.tripBoard.tripImage.entity.TripImage;
 import com.mola.domain.tripBoard.tripImage.repository.TripImageRepository;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostDto;
@@ -20,6 +20,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +32,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,6 +51,8 @@ public class TripPostService {
 
     private final LikesRepository likesRepository;
 
+    private final CommentRepository commentRepository;
+
     private final ModelMapper modelMapper;
 
     private final EntityManager em;
@@ -53,9 +61,8 @@ public class TripPostService {
 
     private static final long RETRY_DELAY = 100;
 
-    public List<TripPostListResponseDto> getAllTripPosts(Pageable pageable) {
-        Page<TripPost> all = tripPostRepository.findAll(pageable);
-        return all.stream().map(TripPost::toTripPostListResponseDto).collect(Collectors.toList());
+    public Page<TripPostListResponseDto> getAllTripPosts(Pageable pageable) {
+        return tripPostRepository.getAllTripPostResponseDto(pageable);
     }
 
     public boolean isPublic(Long id) {
@@ -67,7 +74,8 @@ public class TripPostService {
     }
 
     public TripPostResponseDto getTripPostResponseDto(Long id){
-        return tripPostRepository.getTripPostResponseDtoById(id);
+        Long memberId = getAuthenticatedMemberId();
+        return tripPostRepository.getTripPostResponseDtoById(id, memberId);
     }
 
     public TripPost findById(Long id){
@@ -87,19 +95,22 @@ public class TripPostService {
     }
 
     @Transactional
-    public TripPostResponseDto save(TripPostDto tripPostDto){
-        tripPostDto.getTripImageDtos().forEach(t -> {
-            tripImageRepository.toPublicImages(t.getId());
-        });
+    public Long save(TripPostDto tripPostDto){
+        Document doc = Jsoup.parse(tripPostDto.getContent());
+        Elements images = doc.select("img");
+
+        for (Element img : images) {
+            String imageUrl = img.attr("src");
+
+            tripImageRepository.toPublic(imageUrl);
+        }
 
         TripPost byId = findById(tripPostDto.getId());
 
+        byId.toPublic();
         modelMapper.map(tripPostDto, byId);
-        TripPostResponseDto dto = modelMapper.map(byId, TripPostResponseDto.class);
-        dto.setMemberId(byId.getMember().getId());
-        dto.setNickname(byId.getMember().getNickname());
 
-        return dto;
+        return byId.getId();
     }
 
     @Transactional
@@ -107,23 +118,26 @@ public class TripPostService {
         if (!isOwner(tripPostUpdateDto.getId())) {
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
+
         TripPost tripPost = findById(tripPostUpdateDto.getId());
-        Set<Long> collect = tripPostUpdateDto.getTripImageList().stream().map(TripImageDto::getId).collect(Collectors.toSet());
 
-        List<TripImage> tripImages = filterAndAssignTripImages(tripPost, collect);
-        tripPost.setImageUrl(tripImages);
-        modelMapper.map(tripPostUpdateDto, tripPost);
-        return tripPostRepository.getTripPostResponseDtoById(tripPostRepository.save(tripPost).getId());
-    }
+        Document doc = Jsoup.parse(tripPostUpdateDto.getContent());
+        Elements images = doc.select("img");
+        Set<String> imageUrlsInContent = images.stream()
+                .map(img -> img.attr("src"))
+                .collect(Collectors.toSet());
 
-    private List<TripImage> filterAndAssignTripImages(TripPost tripPost, Set<Long> collect) {
-        return tripPost.getImageUrl().stream().filter(tripImage -> {
-            if (!collect.contains(tripImage.getId())) {
-                tripImage.setTripPostNull();
-                return false;
+        List<TripImage> tripImages = tripPost.getImageUrl();
+        tripImages.forEach(tripImage -> {
+            if (!imageUrlsInContent.contains(tripImage.getUrl())) {
+                tripImage.setFlag(false);
+                tripImageRepository.save(tripImage);
             }
-            return true;
-        }).collect(Collectors.toList());
+        });
+
+        modelMapper.map(tripPostUpdateDto, tripPost);
+        return new TripPostResponseDto();
+//        return tripPostRepository.getTripPostResponseDtoById(tripPostRepository.save(tripPost).getId());
     }
 
     @Transactional
