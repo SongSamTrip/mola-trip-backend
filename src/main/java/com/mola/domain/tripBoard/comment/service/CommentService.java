@@ -95,15 +95,14 @@ public class CommentService {
 
     @Transactional
     public void delete(Long tripPostId, Long commentId){
-        TripPost byId = tripPostService.findById(tripPostId);
-        if(!byId.isTripPostPublic()){
+        if(!tripPostService.isPublic(tripPostId)){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
-        Member member = memberRepository.findById(commentId)
+        Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidMemberIdentifierFormat));
 
         String name = SecurityContextHolder.getContext().getAuthentication().getName();
-        if(!name.equals(String.valueOf(member.getId()))){
+        if(!name.equals(String.valueOf(comment.getMember().getId()))){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
 
