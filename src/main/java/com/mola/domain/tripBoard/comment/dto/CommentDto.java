@@ -13,6 +13,8 @@ import lombok.*;
 @Getter
 public class CommentDto {
 
+    private Long id;
+
     private MemberTripPostDto memberTripPostDto;
 
     private String content;
@@ -25,7 +27,8 @@ public class CommentDto {
                 .build();
     }
 
-    public CommentDto (Long id, String nickname, String content){
+    public CommentDto (Long commentId, Long id, String nickname, String content){
+        this.id = commentId;
         this.memberTripPostDto = new MemberTripPostDto(id, nickname);
         this.content = content;
     }
