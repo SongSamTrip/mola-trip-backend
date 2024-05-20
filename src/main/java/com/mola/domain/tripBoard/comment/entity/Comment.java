@@ -37,6 +37,7 @@ public class Comment {
 
     public static CommentDto toCommentDto(Comment comment){
         return CommentDto.builder()
+                .id(comment.getId())
                 .content(comment.getContent())
                 .memberTripPostDto(new MemberTripPostDto(comment.getMember().getId(),
                         comment.getMember().getNickname()))
