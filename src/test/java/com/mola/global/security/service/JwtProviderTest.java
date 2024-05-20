@@ -53,7 +53,9 @@ class JwtProviderTest {
     void createTokenThatHasMemberId() {
         // given
         Long memberId = 1L;
-        String accessToken = jwtProvider.createAccessToken(memberId);
+        String ImageUrl = "http://naver.com";
+        String nickName = "swh";
+        String accessToken = jwtProvider.createAccessToken(memberId, ImageUrl,nickName);
 
         //when
         DecodedJWT jwt = JWT.decode(accessToken);
@@ -88,7 +90,10 @@ class JwtProviderTest {
     void verifyToken_true() {
         //given
         Long memberId = 1L;
-        String accessToken = jwtProvider.createAccessToken(memberId);
+        String ImageUrl = "http://naver.com";
+        String nickName = "swh";
+
+        String accessToken = jwtProvider.createAccessToken(memberId, ImageUrl, nickName);
 
         //when
         boolean result = jwtProvider.verifyToken(accessToken);
@@ -102,7 +107,10 @@ class JwtProviderTest {
     void verifyToken_false() {
         //given
         Long memberId = 1L;
-        String accessToken = jwtProvider.createAccessToken(memberId);
+        String ImageUrl = "http://naver.com";
+        String nickName = "swh";
+
+        String accessToken = jwtProvider.createAccessToken(memberId, ImageUrl, nickName);
         accessToken = accessToken.substring(0, 3);
 
         //when
@@ -152,7 +160,10 @@ class JwtProviderTest {
     void extractMemberIdFromToken() {
         // given
         Long validMemberId = 1L;
-        String accessToken = jwtProvider.createAccessToken(validMemberId);
+        String ImageUrl = "http://naver.com";
+        String nickName = "swh";
+
+        String accessToken = jwtProvider.createAccessToken(validMemberId, ImageUrl, nickName);
 
         //when
         Long tokenMemberId = jwtProvider.extractMemberIdFromToken(accessToken);
@@ -185,7 +196,9 @@ class JwtProviderTest {
     void extractAuthenticationFromStompHeaderAccessor_success() {
         // given
         Long validMemberId = 1L;
-        String accessToken = "Bearer " + jwtProvider.createAccessToken(validMemberId);
+        String ImageUrl = "http://naver.com";
+        String nickName = "swh";
+        String accessToken = jwtProvider.createAccessToken(validMemberId, ImageUrl, nickName);
         when(accessor.getFirstNativeHeader("Authorization")).thenReturn(accessToken);
 
         // when

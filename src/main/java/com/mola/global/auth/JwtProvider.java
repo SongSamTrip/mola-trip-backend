@@ -38,13 +38,15 @@ public class JwtProvider {
 
     private final MemberRepository memberRepository;
 
-    public String createAccessToken(Long memberId) {
+    public String createAccessToken(Long memberId, String profileImageUrl, String nickName) {
         Date now = new Date();
         return JWT.create()
                 .withIssuer(ISSUER)
                 .withSubject("AccessToken")
                 .withExpiresAt(new Date(now.getTime() + accessTokenExpireTime))
                 .withClaim("memberId", memberId)
+                .withClaim("profileImageUrl", profileImageUrl)
+                .withClaim("nickName", nickName)
                 .sign(Algorithm.HMAC512(secretKey));
     }
 
@@ -73,8 +75,8 @@ public class JwtProvider {
     }
 
     @Transactional
-    public LoginResponseDto createTokens(Long memberId) {
-        String accessToken = createAccessToken(memberId);
+    public LoginResponseDto createTokens(Long memberId, String profileImageUrl, String nickName) {
+        String accessToken = createAccessToken(memberId, profileImageUrl, nickName);
         String refreshToken = createRefreshToken();
         updateRefreshToken(memberId, refreshToken);
 
