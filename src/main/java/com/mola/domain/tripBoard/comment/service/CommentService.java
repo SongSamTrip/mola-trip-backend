@@ -13,6 +13,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,18 +52,24 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentDto save(Long tripPostId, CommentDto commentDto){
+    public CommentDto save(Long tripPostId, String content){
         if(!tripPostService.isPublic(tripPostId)){
             throw new CustomException(GlobalErrorCode.InvalidTripPostIdentifier);
         }
 
         TripPost tripPost = entityManager.getReference(TripPost.class, tripPostId);
 
-        if(!memberRepository.existsById(commentDto.getMemberTripPostDto().getId())){
+        Long memberId = getAuthenticatedMemberId();
+
+        if(!memberRepository.existsById(memberId)){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
-        Member member = entityManager.getReference(Member.class, commentDto.getMemberTripPostDto().getId());
-        Comment entity = commentDto.toEntity(commentDto.getContent(), member, tripPost);
+        Member member = entityManager.getReference(Member.class, memberId);
+        Comment entity = Comment.builder()
+                .content(content)
+                .member(member)
+                .tripPost(tripPost)
+                .build();
         return Comment.toCommentDto(commentRepository.save(entity));
     }
 
@@ -101,5 +108,14 @@ public class CommentService {
         }
 
         commentRepository.deleteById(commentId);
+    }
+
+
+    private Long getAuthenticatedMemberId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new CustomException(GlobalErrorCode.AccessDenied);
+        }
+        return Long.valueOf(authentication.getName());
     }
 }
