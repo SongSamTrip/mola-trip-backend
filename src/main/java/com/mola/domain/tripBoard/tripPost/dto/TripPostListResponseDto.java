@@ -13,10 +13,6 @@ public class TripPostListResponseDto {
 
     private String name;
 
-    private String member;
-
-    private String preview;
-
     private int commentCount;
 
     private int likeCount;
