@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-public interface TripImageRepository extends JpaRepository<TripImage, Long> {
+public interface TripImageRepository extends JpaRepository<TripImage, Long>, TripImageQueryRepository {
 
     @Modifying
     @Transactional
@@ -19,8 +19,9 @@ public interface TripImageRepository extends JpaRepository<TripImage, Long> {
     @Query("SELECT ti FROM TripImage ti WHERE ti.tripPost.id = :tripPostId")
     List<TripImage> findAllByTripPostId(Long tripPostId);
 
-    @Modifying
-    @Transactional
+    @Modifying(flushAutomatically = true)
     @Query("UPDATE TripImage ti SET ti.flag = true WHERE ti.id = :tripImageId")
     void toPublicImages(@Param("tripImageId") Long tripImageId);
+
+    List<TripImage> findAllByFlag(boolean flag);
 }
