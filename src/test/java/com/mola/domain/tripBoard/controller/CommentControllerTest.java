@@ -55,7 +55,7 @@ class CommentControllerTest {
 
         // when
         ResultActions resultActions = mockMvc.perform(
-                get("/api/tripPosts/{tripPostId}/comments", 1)
+                get("/tripPosts/{tripPostId}/comments", 1)
                 .param("pageNo", "1")
                 .param("pageSize", "10")
                 .with(csrf()));
@@ -80,7 +80,7 @@ class CommentControllerTest {
 
         // when
         ResultActions resultActions = mockMvc.perform(
-                post("/api/tripPosts/{tripPostId}/comments", 1)
+                post("/tripPosts/{tripPostId}/comments", 1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(commentDto))
                         .with(csrf()));
@@ -101,7 +101,7 @@ class CommentControllerTest {
         CommentDto commentDto = new CommentDto();
 
         // when
-        ResultActions resultActions = mockMvc.perform(put("/api/tripPosts/{tripPostId}/comments/{commentId}",
+        ResultActions resultActions = mockMvc.perform(put("/tripPosts/{tripPostId}/comments/{commentId}",
                 tripPostId, commentId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(commentDto))
@@ -122,7 +122,7 @@ class CommentControllerTest {
         Long commentId = 2L;
 
         // when
-        ResultActions resultActions = mockMvc.perform(delete("/api/tripPosts/{tripPostId}/comments/{commentId}",
+        ResultActions resultActions = mockMvc.perform(delete("/tripPosts/{tripPostId}/comments/{commentId}",
                 tripPostId, commentId)
                 .with(csrf()));
 
