@@ -25,7 +25,9 @@ public class TripPost {
 
     @Id @GeneratedValue
     private Long id;
+
     private String name;
+
     @ManyToOne
     private Member member;
 
@@ -38,6 +40,7 @@ public class TripPost {
     @Lob
     private String content;
 
+    @Enumerated(EnumType.STRING)
     private TripPostStatus tripPostStatus;
 
     @Builder.Default
@@ -111,7 +114,6 @@ public class TripPost {
                 .name(tripPost.getName())
                 .content(tripPost.getContent())
                 .tripPostStatus(tripPost.getTripPostStatus())
-                .commentCount(tripPost.getComments().size())
                 .likeCount(tripPost.getLikeCount())
                 .build();
     }
@@ -120,7 +122,6 @@ public class TripPost {
         return TripPostListResponseDto.builder()
                 .id(tripPost.getId())
                 .name(tripPost.getName())
-                .preview(tripPost.getContent().substring(0, 50))
                 .commentCount(tripPost.getComments().size())
                 .likeCount(tripPost.getLikeCount())
                 .build();
