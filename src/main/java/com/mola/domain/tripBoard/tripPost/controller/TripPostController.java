@@ -9,13 +9,13 @@ import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -27,10 +27,8 @@ public class TripPostController {
 
 
     @GetMapping
-    public ResponseEntity<List<TripPostListResponseDto>> getTripPosts(Pageable pageable) {
-        List<TripPostListResponseDto> allTripPosts =
-                tripPostService.getAllTripPosts(pageable);
-
+    public ResponseEntity<Page<TripPostListResponseDto>> getTripPosts(Pageable pageable) {
+        Page<TripPostListResponseDto> allTripPosts = tripPostService.getAllTripPosts(pageable);
         return ResponseEntity.ok(allTripPosts);
     }
 
@@ -45,15 +43,13 @@ public class TripPostController {
     }
 
     @PostMapping
-    public ResponseEntity<TripPostResponseDto> saveTripPost(@Valid @RequestBody TripPostDto tripPostDto,
+    public ResponseEntity<Long> saveTripPost(@Valid @RequestBody TripPostDto tripPostDto,
                                                  Errors errors){
         if(errors.hasErrors()){
             throw new CustomException(GlobalErrorCode.MissingRequireData);
         }
 
-        TripPostResponseDto responseDto = tripPostService.save(tripPostDto);
-
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.ok(tripPostService.save(tripPostDto));
     }
 
     @PutMapping("/{id}")
