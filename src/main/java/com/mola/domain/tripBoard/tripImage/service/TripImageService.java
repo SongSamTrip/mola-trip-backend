@@ -40,7 +40,7 @@ public class TripImageService {
     @Transactional
     @Scheduled(cron = "0 0 0 * * *")
     public void deleteOrphanImages() {
-        List<TripImage> allByTripPostId = tripImageRepository.findAllByTripPostId(null);
+        List<TripImage> allByTripPostId = tripImageRepository.findAllByFlag(false);
 
         allByTripPostId.forEach(tripImage -> {
             imageService.delete(tripImage.getUrl());
