@@ -6,9 +6,11 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor
+@Setter
 @Getter
 @Entity
 public class TripImage {
@@ -42,6 +44,6 @@ public class TripImage {
                 .build();
     }
     public void setTripPostNull(){
-        this.tripPost = null;
+        this.flag = false;
     }
 }
