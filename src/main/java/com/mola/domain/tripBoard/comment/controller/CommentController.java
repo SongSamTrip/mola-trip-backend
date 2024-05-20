@@ -5,6 +5,7 @@ import com.mola.domain.tripBoard.comment.dto.CommentDto;
 import com.mola.domain.tripBoard.comment.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,14 +13,13 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api")
 public class CommentController {
 
     private final CommentService commentService;
 
     @GetMapping("/tripPosts/{tripPostId}/comments")
     public ResponseEntity<List<CommentDto>> getComments(@PathVariable("tripPostId") Long tripPostId,
-                                                        Pageable pageable) {
+                                                        @PageableDefault(size = 10) Pageable pageable) {
         List<CommentDto> allComments = commentService.getAllComments(tripPostId, pageable);
 
         return ResponseEntity.ok(allComments);
@@ -27,9 +27,11 @@ public class CommentController {
 
     @PostMapping("/tripPosts/{tripPostId}/comments")
     public ResponseEntity<CommentDto> saveComment(@PathVariable("tripPostId") Long tripPostId,
-                                                  @RequestBody CommentDto commentDto){
+                                                  @RequestBody String content){
 
-        CommentDto save = commentService.save(tripPostId, commentDto);
+        CommentDto save = commentService.save(tripPostId, content);
+
+        System.out.println(save.toString());
 
         return ResponseEntity.ok(save);
     }
