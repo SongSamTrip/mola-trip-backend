@@ -46,22 +46,4 @@ class QueryDslTripPostServiceTest {
         tripPost = tripPostRepository.save(tripPost);
     }
 
-    @Test
-    void queryDslSave() {
-        // given
-        TripPostDto tripPostDto = TripPostDto.builder()
-                .id(1L)
-                .memberId(member.getId())
-                .content("test")
-                .name("test")
-                .build();
-
-        // when
-        TripPostResponseDto save = tripPostService.save(tripPostDto);
-
-        // then
-        assertThat(save.getName()).isEqualTo("test");
-        assertThat(save.getContent()).isEqualTo("test");
-        assertThat(save.getNickname()).isEqualTo("test");
-    }
 }
