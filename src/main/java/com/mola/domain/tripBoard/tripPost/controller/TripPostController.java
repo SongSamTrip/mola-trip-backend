@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
@@ -20,20 +21,21 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/tripPosts")
+@RequestMapping(value = "/tripPosts")
 public class TripPostController {
 
     private final TripPostService tripPostService;
 
 
     @GetMapping
-    public ResponseEntity<Page<TripPostListResponseDto>> getTripPosts(Pageable pageable) {
+    public ResponseEntity<Page<TripPostListResponseDto>> getTripPosts(
+            @PageableDefault(size = 10) Pageable pageable) {
         Page<TripPostListResponseDto> allTripPosts = tripPostService.getAllTripPosts(pageable);
         return ResponseEntity.ok(allTripPosts);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TripPostResponseDto> getTripPost(@PathVariable Long id) {
+    public ResponseEntity<TripPostResponseDto> getTripPost(@PathVariable("id") Long id) {
         return ResponseEntity.ok(tripPostService.getTripPostResponseDto(id));
     }
 
@@ -65,7 +67,7 @@ public class TripPostController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteTripPost(@PathVariable Long id){
+    public ResponseEntity<?> deleteTripPost(@PathVariable("id") Long id){
         tripPostService.deleteTripPost(id);
         return ResponseEntity.ok().build();
     }
@@ -81,7 +83,7 @@ public class TripPostController {
     }
 
     @DeleteMapping("/{id}/likes")
-    public ResponseEntity<?> removeLike(@RequestParam("id") Long tripPostId){
+    public ResponseEntity<?> removeLike(@PathVariable("id") Long tripPostId){
         try {
             tripPostService.removeLikes(tripPostId);
         } catch (InterruptedException e) {
