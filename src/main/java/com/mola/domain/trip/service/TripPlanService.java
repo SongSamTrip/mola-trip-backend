@@ -4,6 +4,7 @@ import com.mola.domain.member.entity.Member;
 import com.mola.domain.trip.dto.NewTripPlanDto;
 import com.mola.domain.trip.dto.TripListHtmlDto;
 import com.mola.domain.trip.dto.TripPlanDto;
+import com.mola.domain.trip.dto.TripPlanInfoDto;
 import com.mola.domain.trip.entity.TripPlan;
 import com.mola.domain.trip.repository.TripPlanRepository;
 import com.mola.domain.trip.repository.TripStatus;
@@ -85,12 +86,17 @@ public class TripPlanService {
                 .build();
     }
 
-    public TripListHtmlDto getTripList(Long tripPlanId) {
+    public TripPlanInfoDto getTripList(Long tripPlanId) {
         TripPlan tripPlan = getMemberTripPlan(tripPlanId);
-        return TripListHtmlDto.builder()
-                .mainTripList(tripPlan.getMainTripList())
-                .subTripList(tripPlan.getSubTripList())
+        return TripPlanInfoDto.builder()
+                .tripListHtmlDto(TripListHtmlDto.builder()
+                        .mainTripList(tripPlan.getMainTripList())
+                        .subTripList(tripPlan.getSubTripList())
+                        .build()
+                )
+                .tripCode(tripPlan.getTripCode())
                 .build();
+
     }
 
     private TripPlan getMemberTripPlan(Long tripId) {

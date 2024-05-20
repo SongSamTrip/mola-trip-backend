@@ -3,6 +3,7 @@ package com.mola.domain.trip.controller;
 import com.mola.domain.trip.dto.NewTripPlanDto;
 import com.mola.domain.trip.dto.TripListHtmlDto;
 import com.mola.domain.trip.dto.TripPlanDto;
+import com.mola.domain.trip.dto.TripPlanInfoDto;
 import com.mola.domain.trip.service.TripPlanService;
 import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
@@ -41,9 +42,11 @@ public class TripPlanController {
     }
 
     @GetMapping("/trip-plan/{tripPlanId}")
-    public ResponseEntity<TripListHtmlDto> getTripPlan(@PathVariable("tripPlanId") Long tripPlanId) {
-        TripListHtmlDto tripListHtmlDto = tripPlanService.getTripList(tripPlanId);
-        return ResponseEntity.ok(tripListHtmlDto);
+    public ResponseEntity<TripPlanInfoDto> getTripPlan(@PathVariable("tripPlanId") Long tripPlanId) {
+        TripPlanInfoDto tripPlanInfoDto = tripPlanService.getTripList(tripPlanId);
+        List<TripPlanDto> tripPlans = tripPlanService.getTripPlans();
+        tripPlanInfoDto.setTripPlanDtos(tripPlans);
+        return ResponseEntity.ok(tripPlanInfoDto);
     }
 
     @PostMapping("/trip-plan/{tripCode}")
