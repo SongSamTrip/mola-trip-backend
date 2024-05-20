@@ -24,4 +24,9 @@ public class CommentDto {
                 .tripPost(tripPost)
                 .build();
     }
+
+    public CommentDto (Long id, String nickname, String content){
+        this.memberTripPostDto = new MemberTripPostDto(id, nickname);
+        this.content = content;
+    }
 }
