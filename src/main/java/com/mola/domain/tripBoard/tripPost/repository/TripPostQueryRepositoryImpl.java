@@ -65,6 +65,7 @@ public class TripPostQueryRepositoryImpl implements TripPostQueryRepository{
     public List<CommentDto> getCommentsForTripPost(Long tripPostId) {
         return jpaQueryFactory
                 .select(Projections.constructor(CommentDto.class,
+                        comment.id,
                         member.id,
                         member.nickname,
                         comment.content
