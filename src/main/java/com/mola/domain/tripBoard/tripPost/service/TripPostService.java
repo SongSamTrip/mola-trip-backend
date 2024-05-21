@@ -3,7 +3,8 @@ package com.mola.domain.tripBoard.tripPost.service;
 import com.mola.domain.member.dto.MemberTripPostDto;
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.member.repository.MemberRepository;
-import com.mola.domain.tripBoard.comment.repository.CommentRepository;
+import com.mola.domain.trip.repository.TripPlanRepository;
+import com.mola.domain.tripBoard.comment.dto.CommentDto;
 import com.mola.domain.tripBoard.like.entity.Likes;
 import com.mola.domain.tripBoard.like.repository.LikesRepository;
 import com.mola.domain.tripBoard.tripImage.entity.TripImage;
@@ -11,7 +12,6 @@ import com.mola.domain.tripBoard.tripImage.repository.TripImageRepository;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostListResponseDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostResponseDto;
-import com.mola.domain.tripBoard.tripPost.dto.TripPostUpdateDto;
 import com.mola.domain.tripBoard.tripPost.entity.TripPost;
 import com.mola.domain.tripBoard.tripPost.repository.TripPostRepository;
 import com.mola.global.exception.CustomException;
@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -47,11 +46,11 @@ public class TripPostService {
 
     private final TripImageRepository tripImageRepository;
 
+    private final TripPlanRepository tripPlanRepository;
+
     private final MemberRepository memberRepository;
 
     private final LikesRepository likesRepository;
-
-    private final CommentRepository commentRepository;
 
     private final ModelMapper modelMapper;
 
@@ -95,33 +94,16 @@ public class TripPostService {
     }
 
     @Transactional
-    public Long save(TripPostDto tripPostDto){
-        Document doc = Jsoup.parse(tripPostDto.getContent());
-        Elements images = doc.select("img");
-
-        for (Element img : images) {
-            String imageUrl = img.attr("src");
-
-            tripImageRepository.toPublic(imageUrl);
-        }
-
-        TripPost byId = findById(tripPostDto.getId());
-
-        byId.toPublic();
-        modelMapper.map(tripPostDto, byId);
-
-        return byId.getId();
-    }
-
-    @Transactional
-    public TripPostResponseDto update(TripPostUpdateDto tripPostUpdateDto) {
-        if (!isOwner(tripPostUpdateDto.getId())) {
+    public Long save(TripPostDto tripPostDto) {
+        if (!isOwner(tripPostDto.getId())) {
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
 
-        TripPost tripPost = findById(tripPostUpdateDto.getId());
+        TripPost tripPost = findById(tripPostDto.getId());
 
-        Document doc = Jsoup.parse(tripPostUpdateDto.getContent());
+        tripPost.toPublic();
+
+        Document doc = Jsoup.parse(tripPostDto.getContent());
         Elements images = doc.select("img");
         Set<String> imageUrlsInContent = images.stream()
                 .map(img -> img.attr("src"))
@@ -132,12 +114,13 @@ public class TripPostService {
             if (!imageUrlsInContent.contains(tripImage.getUrl())) {
                 tripImage.setFlag(false);
                 tripImageRepository.save(tripImage);
+            }else {
+                tripImage.setFlag(true);
             }
         });
 
-        modelMapper.map(tripPostUpdateDto, tripPost);
-        return new TripPostResponseDto();
-//        return tripPostRepository.getTripPostResponseDtoById(tripPostRepository.save(tripPost).getId());
+        modelMapper.map(tripPostDto, tripPost);
+        return tripPost.getId();
     }
 
     @Transactional
@@ -148,6 +131,7 @@ public class TripPostService {
 
         TripPost byId = findById(id);
         byId.getImageUrl().forEach(TripImage::setTripPostNull);
+
         tripPostRepository.delete(byId);
     }
 
@@ -168,6 +152,11 @@ public class TripPostService {
 
         TripPost post = tripPostRepository.findByIdWithOptimisticLock(tripPostId);
         performLikesOperation(post, memberId, false);
+    }
+
+    @Transactional
+    public Page<CommentDto> getCommentsForTripPost(Long postId, Pageable pageable) {
+        return tripPostRepository.getCommentsForTripPost(postId, pageable);
     }
 
     private Long getAuthenticatedMemberId() {
@@ -228,6 +217,12 @@ public class TripPostService {
         }
 
         return authentication.getName().equals(String.valueOf(byId.getMember().getId()));
+    }
+
+    public void validateTripPlan(Long tripPlanId){
+        if(!tripPlanRepository.existsById(tripPlanId)){
+            throw new CustomException(GlobalErrorCode.InvalidTripPlan);
+        }
     }
 
     private MemberTripPostDto findValidMember(Long memberId) {
