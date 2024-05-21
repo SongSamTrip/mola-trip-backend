@@ -1,6 +1,6 @@
 package com.mola.domain.tripBoard.tripImage.repository;
 
-public interface TripImageQueryRepository {
+public interface TripImageRepositoryCustom {
 
     void toPublic(String imageUrl);
 

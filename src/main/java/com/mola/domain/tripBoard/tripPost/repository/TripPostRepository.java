@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface TripPostRepository extends JpaRepository<TripPost, Long>, TripPostQueryRepository {
+public interface TripPostRepository extends JpaRepository<TripPost, Long>, TripPostRepositoryCustom {
 
     TripPost save(TripPost tripPost);
 

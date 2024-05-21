@@ -2,13 +2,11 @@ package com.mola.domain.tripBoard.like.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 
 import static com.mola.domain.tripBoard.like.entity.QLikes.likes;
 
 @RequiredArgsConstructor
-@Repository
-public class LikeQueryRepositoryImpl implements LikeQueryRepository{
+public class LikeRepositoryImpl implements LikeRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
 

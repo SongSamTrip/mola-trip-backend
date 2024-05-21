@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-public interface TripImageRepository extends JpaRepository<TripImage, Long>, TripImageQueryRepository {
+public interface TripImageRepository extends JpaRepository<TripImage, Long>, TripImageRepositoryCustom {
 
     @Modifying
     @Transactional

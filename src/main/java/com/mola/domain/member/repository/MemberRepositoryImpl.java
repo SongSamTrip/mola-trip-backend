@@ -4,15 +4,13 @@ import com.mola.domain.member.dto.MemberTripPostDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 import static com.mola.domain.member.entity.QMember.member;
 
 @RequiredArgsConstructor
-@Repository
-public class MemberCustomRepositoryImpl implements MemberCustomRepository{
+public class MemberRepositoryImpl implements MemberRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
 
