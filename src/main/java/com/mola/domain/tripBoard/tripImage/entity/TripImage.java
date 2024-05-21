@@ -44,6 +44,7 @@ public class TripImage {
                 .build();
     }
     public void setTripPostNull(){
+        this.tripPost = null;
         this.flag = false;
     }
 }
