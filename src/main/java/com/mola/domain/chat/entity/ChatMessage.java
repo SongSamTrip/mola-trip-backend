@@ -22,6 +22,8 @@ public class ChatMessage {
     private Long tripPlanId;
     @Column(name = "member_id")
     private Long memberId;
+
+    private String nickname;
     @Column(name ="content")
     private String content;
     @Column(name = "timestamp")
