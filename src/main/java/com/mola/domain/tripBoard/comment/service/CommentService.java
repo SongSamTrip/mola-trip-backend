@@ -4,12 +4,13 @@ import com.mola.domain.member.entity.Member;
 import com.mola.domain.member.repository.MemberRepository;
 import com.mola.domain.tripBoard.comment.dto.CommentDto;
 import com.mola.domain.tripBoard.comment.entity.Comment;
-import com.mola.domain.tripBoard.tripPost.entity.TripPost;
 import com.mola.domain.tripBoard.comment.repository.CommentRepository;
+import com.mola.domain.tripBoard.tripPost.entity.TripPost;
 import com.mola.domain.tripBoard.tripPost.service.TripPostService;
 import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,9 +18,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -30,20 +28,13 @@ public class CommentService {
     private final TripPostService tripPostService;
     private final MemberRepository memberRepository;
 
+    @PersistenceContext
     private final EntityManager entityManager;
 
-    public List<CommentDto> getAllComments(Long tripPostId, Pageable pageable) {
-        if(!tripPostService.existsTripPost(tripPostId)){
-            throw new CustomException(GlobalErrorCode.InvalidTripPostIdentifier);
-        }
+    public Page<CommentDto> getAllComments(Long tripPostId, Pageable pageable) {
+        validateTripPost(tripPostId);
 
-        Page<Comment> allByTripPostId = commentRepository.findAllByTripPostId(tripPostId, pageable);
-        List<CommentDto> list = new ArrayList<>();
-        allByTripPostId.forEach(comment -> {
-            list.add(Comment.toCommentDto(comment));
-        });
-
-        return list;
+        return tripPostService.getCommentsForTripPost(tripPostId, pageable);
     }
 
     public Comment findById(Long commentId) {
@@ -53,9 +44,7 @@ public class CommentService {
 
     @Transactional
     public CommentDto save(Long tripPostId, String content){
-        if(!tripPostService.isPublic(tripPostId)){
-            throw new CustomException(GlobalErrorCode.InvalidTripPostIdentifier);
-        }
+        validateTripPost(tripPostId);
 
         TripPost tripPost = entityManager.getReference(TripPost.class, tripPostId);
 
@@ -73,12 +62,11 @@ public class CommentService {
         return Comment.toCommentDto(commentRepository.save(entity));
     }
 
+
     @Transactional
     public CommentDto update(Long tripPostId, Long commentId, CommentDto commentDto){
-        TripPost byId = tripPostService.findById(tripPostId);
-        if(!byId.isTripPostPublic()){
-            throw new CustomException(GlobalErrorCode.AccessDenied);
-        }
+        validateTripPost(tripPostId);
+
         Member member = memberRepository.findById(commentDto.getMemberTripPostDto().getId())
                 .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidMemberIdentifierFormat));
 
@@ -90,14 +78,13 @@ public class CommentService {
         Comment comment = findById(commentId);
         comment.setContent(commentDto.getContent());
 
-        return Comment.toCommentDto(commentRepository.save(comment));
+        return Comment.toCommentDto(comment);
     }
 
     @Transactional
     public void delete(Long tripPostId, Long commentId){
-        if(!tripPostService.isPublic(tripPostId)){
-            throw new CustomException(GlobalErrorCode.AccessDenied);
-        }
+        validateTripPost(tripPostId);
+
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidMemberIdentifierFormat));
 
@@ -116,5 +103,10 @@ public class CommentService {
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
         return Long.valueOf(authentication.getName());
+    }
+    private void validateTripPost(Long tripPostId) {
+        if(!tripPostService.isPublic(tripPostId)){
+            throw new CustomException(GlobalErrorCode.InvalidTripPostIdentifier);
+        }
     }
 }
