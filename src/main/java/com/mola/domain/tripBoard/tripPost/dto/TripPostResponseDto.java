@@ -4,9 +4,10 @@ import com.mola.domain.tripBoard.comment.dto.CommentDto;
 import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
 import java.util.ArrayList;
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -31,14 +32,20 @@ public class TripPostResponseDto {
 
     private TripPostStatus tripPostStatus;
 
-    private List<CommentDto> commentDtos;
+    private Page<CommentDto> commentDtos;
 
     private int likeCount;
 
     private boolean isLike;
 
+    String tripName;
 
-    public TripPostResponseDto(Long id, Long memberId, String nickname, String name, String content, TripPostStatus tripPostStatus, int likeCount, boolean isLike) {
+    Long tripId;
+
+    private String mainList;
+
+
+    public TripPostResponseDto(Long id, Long memberId, String nickname, String name, String content, TripPostStatus tripPostStatus, int likeCount, boolean isLike, String tripName, Long tripId, String mainList) {
         this.id = id;
         this.memberId = memberId;
         this.nickname = nickname;
@@ -47,6 +54,9 @@ public class TripPostResponseDto {
         this.tripPostStatus = tripPostStatus;
         this.likeCount = likeCount;
         this.isLike = isLike;
-        this.commentDtos = new ArrayList<>(); // 댓글 목록 초기화
+        this.commentDtos = new PageImpl<>(new ArrayList<>());
+        this.tripName = tripName;
+        this.tripId = tripId;
+        this.mainList = mainList;
     }
 }
