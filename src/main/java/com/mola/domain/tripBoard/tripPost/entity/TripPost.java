@@ -31,7 +31,7 @@ public class TripPost {
     @ManyToOne
     private Member member;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private TripPlan tripPlan;
 
     @Column(length = 50)
@@ -51,9 +51,7 @@ public class TripPost {
     private List<Comment> comments = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "tripPost",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "tripPost", fetch = FetchType.LAZY)
     private List<TripImage> imageUrl = new ArrayList<>();
 
     @Builder.Default
