@@ -1,5 +1,6 @@
 package com.mola.domain.member.service;
 
+import com.mola.domain.member.dto.oauthInfo.GithubUserInfo;
 import com.mola.domain.member.dto.oauthInfo.GoogleUserInfo;
 import com.mola.domain.member.dto.oauthInfo.KakaoUserInfo;
 import com.mola.domain.member.dto.oauthInfo.NaverUserInfo;
@@ -52,6 +53,9 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
     }
 
     public static OAuth2UserInfo getUserInfo(String registrationId, Map<String, Object> attributes) {
+
+        attributes.forEach((key, value) -> System.out.println(key + ": " + value));
+
         switch (registrationId) {
             case "google":
                 return new GoogleUserInfo(attributes);
@@ -59,6 +63,8 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                 return new KakaoUserInfo(attributes);
             case "naver":
                 return new NaverUserInfo(attributes);
+            case "github":
+                return new GithubUserInfo(attributes);
             default:
                 throw new IllegalArgumentException("Unsupported provider " + registrationId);
         }
