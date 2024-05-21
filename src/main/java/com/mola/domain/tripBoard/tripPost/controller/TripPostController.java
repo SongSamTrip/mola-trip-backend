@@ -3,7 +3,6 @@ package com.mola.domain.tripBoard.tripPost.controller;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostListResponseDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostResponseDto;
-import com.mola.domain.tripBoard.tripPost.dto.TripPostUpdateDto;
 import com.mola.domain.tripBoard.tripPost.service.TripPostService;
 import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
@@ -46,24 +45,12 @@ public class TripPostController {
 
     @PostMapping
     public ResponseEntity<Long> saveTripPost(@Valid @RequestBody TripPostDto tripPostDto,
-                                                 Errors errors){
+                                             Errors errors){
         if(errors.hasErrors()){
             throw new CustomException(GlobalErrorCode.MissingRequireData);
         }
 
         return ResponseEntity.ok(tripPostService.save(tripPostDto));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<TripPostResponseDto> updateTripPost(@Valid @RequestBody TripPostUpdateDto tripPostUpdateDto,
-                                                              Errors errors) {
-        if(errors.hasErrors()){
-            throw new CustomException(GlobalErrorCode.MissingRequireData);
-        }
-
-        TripPostResponseDto responseDto = tripPostService.update(tripPostUpdateDto);
-
-        return ResponseEntity.ok(responseDto);
     }
 
     @DeleteMapping("/{id}")
