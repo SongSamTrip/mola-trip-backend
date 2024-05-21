@@ -39,4 +39,7 @@ public class SecurityUtil {
                 .orElseThrow(() -> new CustomException(GlobalErrorCode.UnAuthorized));
     }
 
+    public boolean existMember(Long memberId) {
+        return memberRepository.existsById(memberId);
+    }
 }
