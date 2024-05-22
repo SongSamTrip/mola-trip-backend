@@ -1,6 +1,8 @@
 package com.mola.fixture;
 
+import com.mola.domain.member.entity.LoginProvider;
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.member.entity.MemberRole;
 import com.mola.domain.tripBoard.comment.entity.Comment;
 import com.mola.domain.tripBoard.like.entity.Likes;
 import com.mola.domain.tripBoard.tripPost.entity.TripPost;
@@ -22,6 +24,16 @@ public class Fixture {
                 .build();
     }
 
+    public static Member createSimpleMember(String nickname, LoginProvider loginProvider) {
+        return Member.builder()
+                .nickname(nickname)
+                .personalId("personal_" + nickname)
+                .profileImageUrl("http://example.com/image/" + nickname)
+                .refreshToken("refreshToken_" + nickname)
+                .loginProvider(loginProvider)
+                .memberRole(MemberRole.USER)
+                .build();
+    }
 
     public static TripPost createTripPost(Long id, TripPostStatus status) {
         return TripPost.builder()
