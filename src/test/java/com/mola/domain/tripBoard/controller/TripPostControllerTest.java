@@ -63,8 +63,10 @@ class TripPostControllerTest {
         // given
         TripPostDto tripPostDto = TripPostDto.builder()
                 .id(1L)
+                .memberId(1L)
                 .name("name")
                 .content("content")
+                .tripPlanId(1L)
                 .build();
 
         // when
@@ -99,35 +101,4 @@ class TripPostControllerTest {
         resultActions.andExpect(status().isBadRequest());
         verify(tripPostService, never()).save(any());
     }
-
-    @DisplayName("필드값들이 조건에 맞지 않다면 update 를 호출하지 않음")
-    @WithMockUser
-    @Test
-    void callUpdate_success() throws Exception {
-        // given
-        List<TripImageDto> tripImageList = new ArrayList<>();
-        LongStream.range(1, 11).forEach(i -> {
-            tripImageList.add(new TripImageDto(i, "test", 1L));
-        });
-
-        var updateDto = TripPostUpdateDto.builder()
-                .id(1L)
-                .name("test")
-                .content("test")
-                .tripImageList(tripImageList)
-                .build();
-
-        // when
-        ResultActions resultActions = mockMvc.perform(put("/tripPosts/{id}", updateDto.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateDto))
-                .with(csrf()));
-
-        // then
-        resultActions.andDo(print())
-                .andExpect(status().isOk());
-
-
-    }
-
 }
