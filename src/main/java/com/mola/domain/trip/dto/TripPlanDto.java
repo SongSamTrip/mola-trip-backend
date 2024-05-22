@@ -15,4 +15,11 @@ public class TripPlanDto {
     Long tripId;
     Long totalTripMember;
     String tripImageUrl;
+
+
+    public TripPlanDto(String tripName, Long tripId, Long totalTripMember) {
+        this.tripName = tripName;
+        this.tripId = tripId;
+        this.totalTripMember = totalTripMember;
+    }
 }

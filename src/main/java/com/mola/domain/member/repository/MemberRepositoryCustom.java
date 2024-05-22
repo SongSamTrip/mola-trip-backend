@@ -4,7 +4,7 @@ import com.mola.domain.member.dto.MemberTripPostDto;
 
 import java.util.Optional;
 
-public interface MemberCustomRepository {
+public interface MemberRepositoryCustom {
 
     Optional<MemberTripPostDto> findMemberTripPostDtoById(Long memberId);
 

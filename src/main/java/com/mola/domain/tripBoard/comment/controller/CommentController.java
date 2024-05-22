@@ -4,12 +4,11 @@ package com.mola.domain.tripBoard.comment.controller;
 import com.mola.domain.tripBoard.comment.dto.CommentDto;
 import com.mola.domain.tripBoard.comment.service.CommentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -18,9 +17,9 @@ public class CommentController {
     private final CommentService commentService;
 
     @GetMapping("/tripPosts/{tripPostId}/comments")
-    public ResponseEntity<List<CommentDto>> getComments(@PathVariable("tripPostId") Long tripPostId,
+    public ResponseEntity<Page<CommentDto>> getComments(@PathVariable("tripPostId") Long tripPostId,
                                                         @PageableDefault(size = 10) Pageable pageable) {
-        List<CommentDto> allComments = commentService.getAllComments(tripPostId, pageable);
+        Page<CommentDto> allComments = commentService.getAllComments(tripPostId, pageable);
 
         return ResponseEntity.ok(allComments);
     }

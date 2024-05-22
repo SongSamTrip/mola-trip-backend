@@ -84,29 +84,29 @@ class TripPostServiceTest {
 
 //    @DisplayName("게시글이 수정될 때 이미지가 제거되면 리스트 사이즈가 변경")
 //    @Test
-    void update() {
-        List<TripImageDto> tripImageDtos = new ArrayList<>();
-        LongStream.range(1, 5).forEach(i -> {
-            tripImageDtos.add(new TripImageDto(i, "test" + i, tripPost.getId()));
-        });
-        TripPostUpdateDto updateDto = TripPostUpdateDto.builder()
-                .id(tripPost.getId())
-                .name(tripPost.getName())
-                .content(tripPost.getContent())
-                .tripImageList(tripImageDtos)
-                .build();
-
-        doReturn(Optional.of(tripPost)).when(tripPostRepository).findById(any());
-        doReturn(true).when(tripPostService).isOwner(any());
-        doReturn(tripPost).when(tripPostRepository).save(any());
-
-        TripPostResponseDto update = tripPostService.update(updateDto);
-
-        assertEquals(tripPost.getId(), update.getId());
-        assertEquals(tripPost.getName(), update.getName());
-        assertEquals(tripPost.getContent(), update.getContent());
-        assertEquals(tripPost.getImageUrl().size(), 4);
-    }
+//    void update() {
+//        List<TripImageDto> tripImageDtos = new ArrayList<>();
+//        LongStream.range(1, 5).forEach(i -> {
+//            tripImageDtos.add(new TripImageDto(i, "test" + i, tripPost.getId()));
+//        });
+//        TripPostUpdateDto updateDto = TripPostUpdateDto.builder()
+//                .id(tripPost.getId())
+//                .name(tripPost.getName())
+//                .content(tripPost.getContent())
+//                .tripImageList(tripImageDtos)
+//                .build();
+//
+//        doReturn(Optional.of(tripPost)).when(tripPostRepository).findById(any());
+//        doReturn(true).when(tripPostService).isOwner(any());
+//        doReturn(tripPost).when(tripPostRepository).save(any());
+//
+//        TripPostResponseDto update = tripPostService.update(updateDto);
+//
+//        assertEquals(tripPost.getId(), update.getId());
+//        assertEquals(tripPost.getName(), update.getName());
+//        assertEquals(tripPost.getContent(), update.getContent());
+//        assertEquals(tripPost.getImageUrl().size(), 4);
+//    }
 
     @DisplayName("인증된 회원이 존재하는 게시글에 좋아요를 누르면 좋아요 갯수가 증가")
     @Test

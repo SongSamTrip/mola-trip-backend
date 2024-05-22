@@ -14,14 +14,13 @@ import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
 import com.mola.global.util.SecurityUtil;
 import jakarta.transaction.Transactional;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
@@ -137,25 +136,36 @@ public class TripPlanService {
         return tripPlan.getId();
     }
 
-    public List<TripPlanDto> getTripPlans() {
+    @Transactional
+    public List<TripPlanDto> getTripPlans(){
         Long memberId = securityUtil.findCurrentMemberId();
-        List<TripFriends> tripFriendsList = tripFriendsRepository.findAllByMemberId(memberId);
 
-        if (tripFriendsList.isEmpty()) {
-            return Collections.emptyList();
+        if(!securityUtil.existMember(memberId)){
+            throw new CustomException(GlobalErrorCode.AccessDenied);
         }
 
-        List<Long> tripPlanIds = tripFriendsList.stream()
-                .map(tripFriends -> tripFriends.getTripPlan().getId())
-                .distinct()
-                .collect(Collectors.toList());
-
-        List<TripPlan> tripPlans = tripPlanRepository.findAllById(tripPlanIds);
-
-        return tripPlans.stream()
-                .map(this::convertTripPlansToDto)
-                .collect(Collectors.toList());
+        return tripPlanRepository.getTripPostDtoByMemberId(memberId);
     }
+//    public List<TripPlanDto> getTripPlans() {
+//        Long memberId = securityUtil.findCurrentMemberId();
+//        List<TripFriends> tripFriendsList = tripFriendsRepository.findAllByMemberId(memberId);
+//
+//        if (tripFriendsList.isEmpty()) {
+//            return Collections.emptyList();
+//        }
+//
+//        List<Long> tripPlanIds = tripFriendsList.stream()
+//                .map(tripFriends -> tripFriends.getTripPlan().getId())
+//                .distinct()
+//                .collect(Collectors.toList());
+//
+//        List<TripPlan> tripPlans = tripPlanRepository.findAllById(tripPlanIds);
+//
+//        return tripPlans.stream()
+//                .map(this::convertTripPlansToDto)
+//                .collect(Collectors.toList());
+
+//    }
 
     private TripPlanDto convertTripPlansToDto(TripPlan tripPlan) {
 
