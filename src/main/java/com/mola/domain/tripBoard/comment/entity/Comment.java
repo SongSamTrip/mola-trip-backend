@@ -4,6 +4,7 @@ import com.mola.domain.member.dto.MemberTripPostDto;
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.tripBoard.comment.dto.CommentDto;
 import com.mola.domain.tripBoard.tripPost.entity.TripPost;
+import com.mola.global.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,7 +15,7 @@ import lombok.*;
 @Setter
 @Getter
 @Entity
-public class Comment {
+public class Comment extends BaseEntity {
 
     @Id @GeneratedValue
     private Long id;

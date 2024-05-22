@@ -2,6 +2,7 @@ package com.mola.domain.tripBoard.tripImage.entity;
 
 import com.mola.domain.tripBoard.tripImage.dto.TripImageDto;
 import com.mola.domain.tripBoard.tripPost.entity.TripPost;
+import com.mola.global.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +14,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @Entity
-public class TripImage {
+public class TripImage extends BaseEntity {
 
     @Id @GeneratedValue
     private Long id;

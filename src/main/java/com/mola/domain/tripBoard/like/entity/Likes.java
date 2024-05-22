@@ -2,6 +2,7 @@ package com.mola.domain.tripBoard.like.entity;
 
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.tripBoard.tripPost.entity.TripPost;
+import com.mola.global.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,7 +12,7 @@ import lombok.*;
 @Setter
 @Getter
 @Entity
-public class Likes {
+public class Likes extends BaseEntity {
 
     @Id
     @GeneratedValue

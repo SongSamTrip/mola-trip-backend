@@ -2,6 +2,7 @@ package com.mola.domain.trip.entity;
 
 import com.mola.domain.trip.repository.TripStatus;
 import com.mola.domain.tripFriends.TripFriends;
+import com.mola.global.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,7 +15,7 @@ import java.util.List;
 @Setter
 @Builder
 @Entity
-public class TripPlan {
+public class TripPlan extends BaseEntity {
 
     @Id @GeneratedValue
     @Column(name = "trip_plan_id")

@@ -8,6 +8,7 @@ import com.mola.domain.tripBoard.like.entity.Likes;
 import com.mola.domain.tripBoard.tripImage.entity.TripImage;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostListResponseDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostResponseDto;
+import com.mola.global.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,7 +22,7 @@ import java.util.List;
 @Setter
 @Getter
 @Entity
-public class TripPost {
+public class TripPost extends BaseEntity {
 
     @Id @GeneratedValue
     private Long id;
@@ -34,8 +35,8 @@ public class TripPost {
     @ManyToOne(fetch = FetchType.EAGER)
     private TripPlan tripPlan;
 
-    @Column(length = 50)
-    private String preview;
+    @Lob
+    private String representationImageUrl;
 
     @Lob
     private String content;
@@ -67,7 +68,6 @@ public class TripPost {
     private Long version = 0L;
 
 
-
     public void deleteRelateEntities(){
         this.comments.forEach(member::deleteComment);
         this.likes.forEach(member::deleteLikes);
@@ -88,10 +88,6 @@ public class TripPost {
         this.likeCount++;
     }
 
-    public boolean isTripPostPublic(){
-        return this.tripPostStatus == TripPostStatus.PUBLIC;
-    }
-
     public static TripPost createDraft(Member member){
         TripPost tripPost = new TripPost();
         tripPost.setMember(member);
@@ -101,28 +97,6 @@ public class TripPost {
 
     public void toPublic() {
         this.tripPostStatus = TripPostStatus.PUBLIC;
-    }
-
-
-    public static TripPostResponseDto toTripPostResponseDto(TripPost tripPost, MemberTripPostDto memberTripPostDto) {
-        return TripPostResponseDto.builder()
-                .id(tripPost.getId())
-                .memberId(memberTripPostDto.getId())
-                .nickname(memberTripPostDto.getNickname())
-                .name(tripPost.getName())
-                .content(tripPost.getContent())
-                .tripPostStatus(tripPost.getTripPostStatus())
-                .likeCount(tripPost.getLikeCount())
-                .build();
-    }
-
-    public static TripPostListResponseDto toTripPostListResponseDto(TripPost tripPost) {
-        return TripPostListResponseDto.builder()
-                .id(tripPost.getId())
-                .name(tripPost.getName())
-                .commentCount(tripPost.getComments().size())
-                .likeCount(tripPost.getLikeCount())
-                .build();
     }
 }
 

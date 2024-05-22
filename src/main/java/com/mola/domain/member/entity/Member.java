@@ -4,6 +4,7 @@ import com.mola.domain.tripBoard.comment.entity.Comment;
 import com.mola.domain.tripBoard.like.entity.Likes;
 import com.mola.domain.tripBoard.tripPost.entity.TripPost;
 import com.mola.domain.tripFriends.TripFriends;
+import com.mola.global.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,7 +17,7 @@ import java.util.List;
 @Setter
 @Builder
 @Entity
-public class Member {
+public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue
