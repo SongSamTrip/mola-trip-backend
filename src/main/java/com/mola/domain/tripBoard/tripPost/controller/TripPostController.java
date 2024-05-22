@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
@@ -91,5 +92,10 @@ public class TripPostController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/tripPosts/admin")
+    public ResponseEntity<Page<TripPostListResponseDto>> getAdminTripPosts(Pageable pageable){
+        return ResponseEntity.ok(tripPostService.adminGetAllPosts(pageable));
+    }
 
 }

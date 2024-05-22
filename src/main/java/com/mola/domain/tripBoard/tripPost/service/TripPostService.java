@@ -70,6 +70,10 @@ public class TripPostService {
         return tripPostRepository.getAllTripPostResponseDto(memberId, null, pageable);
     }
 
+    public Page<TripPostListResponseDto> adminGetAllPosts(Pageable pageable){
+        return tripPostRepository.getAllTripPostResponseDto(null, null, pageable);
+    }
+
     public boolean isPublic(Long id) {
         return tripPostRepository.isPublic(id);
     }
