@@ -33,6 +33,14 @@ public class MemberController {
         return ResponseEntity.ok(memberService.getMembersForAdmin(pageable));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/members/admin/{id}")
+    public ResponseEntity<?> adminDeleteMember(@PathVariable Long id){
+        memberService.adminDeleteMember(id);
+        return ResponseEntity.ok().build();
+    }
+
+
     @PostMapping("/members/admin")
     public ResponseEntity<Long> requestAdmin(@RequestBody String secretKey) {
         System.out.println(securityUtil.getAuthenticatedUser());
