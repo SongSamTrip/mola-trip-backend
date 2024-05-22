@@ -1,21 +1,19 @@
 package com.mola.domain.member.service;
 
-import com.mola.domain.member.dto.oauthInfo.GithubUserInfo;
-import com.mola.domain.member.dto.oauthInfo.GoogleUserInfo;
-import com.mola.domain.member.dto.oauthInfo.KakaoUserInfo;
-import com.mola.domain.member.dto.oauthInfo.NaverUserInfo;
-import com.mola.domain.member.dto.oauthInfo.OAuth2UserInfo;
+import com.mola.domain.member.dto.oauthInfo.*;
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.member.entity.MemberRole;
 import com.mola.domain.member.repository.MemberRepository;
 import com.mola.global.auth.CustomOAuth2User;
 import jakarta.transaction.Transactional;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -46,6 +44,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                 .personalId(userInfo.getPersonalId())
                 .nickname(userInfo.getNickname())
                 .profileImageUrl(userInfo.getProfileImageUrl())
+                .memberRole(MemberRole.USER)
                 .build();
 
         memberRepository.save(newMember);
@@ -69,4 +68,5 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                 throw new IllegalArgumentException("Unsupported provider " + registrationId);
         }
     }
+
 }

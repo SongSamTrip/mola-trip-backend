@@ -7,6 +7,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.mola.domain.member.dto.LoginResponseDto;
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.member.entity.MemberRole;
 import com.mola.domain.member.repository.MemberRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -14,10 +15,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
 
@@ -38,7 +41,7 @@ public class JwtProvider {
 
     private final MemberRepository memberRepository;
 
-    public String createAccessToken(Long memberId, String profileImageUrl, String nickName) {
+    public String createAccessToken(Long memberId, String profileImageUrl, String nickName, String role) {
         Date now = new Date();
         return JWT.create()
                 .withIssuer(ISSUER)
@@ -47,6 +50,7 @@ public class JwtProvider {
                 .withClaim("memberId", memberId)
                 .withClaim("profileImageUrl", profileImageUrl)
                 .withClaim("nickName", nickName)
+                .withClaim("role", role)
                 .sign(Algorithm.HMAC512(secretKey));
     }
 
@@ -76,7 +80,9 @@ public class JwtProvider {
 
     @Transactional
     public LoginResponseDto createTokens(Long memberId, String profileImageUrl, String nickName) {
-        String accessToken = createAccessToken(memberId, profileImageUrl, nickName);
+        MemberRole role = memberRepository.findRoleByMemberId(memberId);
+
+        String accessToken = createAccessToken(memberId, profileImageUrl, nickName, role.getKey());
         String refreshToken = createRefreshToken();
         updateRefreshToken(memberId, refreshToken);
 
@@ -97,6 +103,15 @@ public class JwtProvider {
         try {
             DecodedJWT jwt = JWT.decode(token);
             return jwt.getClaim("memberId").asLong();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+    }
+
+    public String extractMemberRoleFromToken(String token) {
+        try {
+            DecodedJWT jwt = JWT.decode(token);
+            return jwt.getClaim("role").asString();
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid token");
         }
@@ -123,7 +138,7 @@ public class JwtProvider {
         return User.builder()
                 .username(memberId.toString())
                 .password("")
-                .authorities(role)
+                .authorities(Collections.singleton(new SimpleGrantedAuthority(role)))
                 .build();
     }
 }
