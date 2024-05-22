@@ -93,9 +93,16 @@ public class TripPostController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/tripPosts/admin")
+    @GetMapping("/admin")
     public ResponseEntity<Page<TripPostListResponseDto>> getAdminTripPosts(Pageable pageable){
         return ResponseEntity.ok(tripPostService.adminGetAllPosts(pageable));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("{id}/admin")
+    public ResponseEntity<?> deleteAdminTripPosts(@PathVariable Long id){
+        tripPostService.deleteAdminTripPost(id);
+        return ResponseEntity.ok().build();
     }
 
 }

@@ -2,6 +2,7 @@ package com.mola.domain.tripBoard.tripPost.service;
 
 import com.mola.domain.member.dto.MemberTripPostDto;
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.member.entity.MemberRole;
 import com.mola.domain.member.repository.MemberRepository;
 import com.mola.domain.trip.repository.TripPlanRepository;
 import com.mola.domain.tripBoard.comment.dto.CommentDto;
@@ -84,6 +85,9 @@ public class TripPostService {
 
     public TripPostResponseDto getTripPostResponseDto(Long id){
         Long memberId = getAuthenticatedMemberId();
+        if(!isOwner(id) && !memberRepository.findRoleByMemberId(memberId).equals(MemberRole.ADMIN)){
+            throw new CustomException(GlobalErrorCode.AccessDenied);
+        }
         return tripPostRepository.getTripPostResponseDtoById(id, memberId);
     }
 
@@ -119,10 +123,12 @@ public class TripPostService {
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
 
-        TripPost byId = findById(id);
-        byId.getImageUrl().forEach(TripImage::setTripPostNull);
+        deleteById(id);
+    }
 
-        tripPostRepository.delete(byId);
+    @Transactional
+    public void deleteAdminTripPost(Long id){
+        deleteById(id);
     }
 
 
@@ -144,7 +150,6 @@ public class TripPostService {
         performLikesOperation(post, memberId, false);
     }
 
-    @Transactional
     public Page<CommentDto> getCommentsForTripPost(Long postId, Pageable pageable) {
         return tripPostRepository.getCommentsForTripPost(postId, pageable);
     }
@@ -249,4 +254,12 @@ public class TripPostService {
         modelMapper.map(tripPostDto, tripPost);
         return tripPost;
     }
+
+    private void deleteById(Long id) {
+        TripPost byId = findById(id);
+        byId.getImageUrl().forEach(TripImage::setTripPostNull);
+
+        tripPostRepository.delete(byId);
+    }
+
 }
