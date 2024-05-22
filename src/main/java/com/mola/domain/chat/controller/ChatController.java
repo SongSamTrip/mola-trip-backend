@@ -1,18 +1,19 @@
 package com.mola.domain.chat.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mola.domain.chat.dto.ChatMessageDto;
 import com.mola.domain.chat.entity.ChatMessage;
+import com.mola.domain.chat.exception.StompError;
 import com.mola.domain.chat.service.ChatMessageService;
-import com.mola.domain.member.entity.Member;
-import com.mola.domain.member.repository.MemberRepository;
-import com.mola.global.exception.CustomException;
-import com.mola.global.exception.GlobalErrorCode;
+import com.mola.domain.tripFriends.TripFriendsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,13 +27,17 @@ import java.util.List;
 public class ChatController {
 
     private final ChatMessageService chatMessageService;
-    private final MemberRepository memberRepository;
+    private final ObjectMapper objectMapper;
+    private final TripFriendsService tripFriendsService;
     private final SimpMessagingTemplate template;
 
     @MessageMapping(value = "/chat/{id}")
-    public void sendMessage(@DestinationVariable("id") String tripPlanId, String message) {
-        ChatMessage chatMessage = chatMessageService.saveMessage(createChatMessage(tripPlanId, message));
-        template.convertAndSend("/sub/chat/" + tripPlanId, chatMessage);
+    public void sendMessage(@DestinationVariable("id") String tripPlanId, String message) throws JsonProcessingException {
+        ChatMessageDto chatMessageDto = objectMapper.readValue(message, ChatMessageDto.class);
+        verifyTripFriends(chatMessageDto.getMemberId(), Long.valueOf(tripPlanId));
+
+        ChatMessage chatMessage = chatMessageService.saveMessage(createChatMessage(tripPlanId, chatMessageDto));
+        template.convertAndSend("/sub/chat/" + tripPlanId, objectMapper.writeValueAsString(chatMessage));
     }
 
     @GetMapping(value = "/chatMessage/{id}")
@@ -40,21 +45,22 @@ public class ChatController {
         return ResponseEntity.ok(chatMessageService.getMessages(tripPlanId));
     }
 
-    @GetMapping
+    private void verifyTripFriends(Long memberId, Long tripPlanId) {
+        if (!tripFriendsService.existsByMemberAndTripPlan(memberId, tripPlanId)) {
+            throw new MessageDeliveryException(StompError.INVALID.name());
+        }
+    }
 
-    private ChatMessage createChatMessage(String tripPlanId, String message) {
-        Long memberId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(GlobalErrorCode.AccessDenied));
-
+    private ChatMessage createChatMessage(String tripPlanId, ChatMessageDto chatMessageDto) {
         ChatMessage chatMessage = ChatMessage.builder()
-                .memberId(member.getId())
-                .nickname(member.getNickname())
+                .memberId(chatMessageDto.getMemberId())
+                .nickname(chatMessageDto.getNickname())
                 .tripPlanId(Long.valueOf(tripPlanId))
-                .content(message)
+                .content(chatMessageDto.getContent())
                 .timestamp(LocalDateTime.now())
                 .build();
+
+        chatMessageService.saveMessage(chatMessage);
         return chatMessage;
     }
 }

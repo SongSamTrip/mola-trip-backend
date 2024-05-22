@@ -11,6 +11,7 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ChatInterceptor implements ChannelInterceptor {
 
-    private final TripFriendsService tripFriendsService;
     private final JwtProvider jwtProvider;
 
     @Override
@@ -29,70 +29,17 @@ public class ChatInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         StompCommand command = accessor.getCommand();
 
-        if(requiresAuthentication(command)){
-            Authentication authentication = jwtProvider.extractAuthenticationFromStompHeaderAccessor(accessor);
+        if(command.equals(StompCommand.CONNECT)) {
+            String authorization = accessor.getFirstNativeHeader("Authorization");
+            if (authorization != null && authorization.startsWith("Bearer ")) {
+                String token = authorization.substring(7);
 
-            if(authentication != null){
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }else {
-                throw new MessageDeliveryException(StompError.UNAUTHORIZED.name());
+                if (!jwtProvider.verifyToken(token)) {
+                    throw new MessageDeliveryException(StompError.UNAUTHORIZED.name());
+                }
             }
-            verifyIsValidMessage(accessor);
         }
 
         return message;
-    }
-
-
-    private boolean requiresAuthentication(StompCommand command) {
-        return StompCommand.SUBSCRIBE.equals(command) ||
-                StompCommand.SEND.equals(command) ||
-                StompCommand.MESSAGE.equals(command) ||
-                StompCommand.UNSUBSCRIBE.equals(command);
-    }
-
-    private void verifyIsValidMessage(StompHeaderAccessor accessor) {
-        Authentication authentication = getAndVerifyAuthentication();
-        Long memberId = validateAndGetMemberId(authentication);
-        String destination = accessor.getDestination();
-        verifyDestination(destination);
-        Long tripPlanId = parseTripPlanId(destination);
-        verifyTripFriends(memberId, tripPlanId);
-    }
-
-    private void verifyTripFriends(Long memberId, Long tripPlanId) {
-        if (!tripFriendsService.existsByMemberAndTripPlan(memberId, tripPlanId)) {
-            throw new MessageDeliveryException(StompError.INVALID.name());
-        }
-    }
-
-    private Long validateAndGetMemberId(Authentication authentication) {
-        if (!(authentication.getPrincipal() instanceof UserDetails)) {
-            throw new MessageDeliveryException(StompError.UNAUTHORIZED.name());
-        }
-        return Long.valueOf(((UserDetails) authentication.getPrincipal()).getUsername());
-    }
-
-    private static void verifyDestination(String destination) {
-        if (destination == null || (!destination.startsWith("/sub/") && !destination.startsWith("/pub/"))) {
-            throw new MessageDeliveryException(StompError.INVALID.name());
-        }
-    }
-
-    private static Long parseTripPlanId(String destination) {
-        try {
-            String[] parts = destination.split("/");
-            return Long.parseLong(parts[parts.length - 1]);
-        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            throw new MessageDeliveryException(StompError.INVALID.name());
-        }
-    }
-
-    private static Authentication getAndVerifyAuthentication() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new MessageDeliveryException(StompError.UNAUTHORIZED.name());
-        }
-        return authentication;
     }
 }
