@@ -1,6 +1,7 @@
 package com.mola.domain.tripBoard.tripPost.dto;
 
 import com.mola.domain.tripBoard.tripImage.dto.TripImageDto;
+import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -33,4 +34,6 @@ public class TripPostDto {
 
     @Builder.Default
     private List<TripImageDto> tripImageDtos = new ArrayList<>();
+
+    private TripPostStatus tripPostStatus;
 }

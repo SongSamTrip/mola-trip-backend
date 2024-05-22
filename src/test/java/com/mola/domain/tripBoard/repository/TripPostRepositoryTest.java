@@ -79,8 +79,8 @@ class TripPostRepositoryTest {
 
         System.out.println("====================================================");
 
-        Page<TripPostListResponseDto> all = tripPostRepository.getAllTripPostResponseDto(pageable);
-        all.stream().forEach(trip ->
-                System.out.println(trip.getCommentCount()));
+//        Page<TripPostListResponseDto> all = tripPostRepository.getAllTripPostResponseDto(pageable);
+//        all.stream().forEach(trip ->
+//                System.out.println(trip.getCommentCount()));
     }
 }

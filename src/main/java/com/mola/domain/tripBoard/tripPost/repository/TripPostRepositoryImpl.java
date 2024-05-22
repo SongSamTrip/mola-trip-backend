@@ -5,6 +5,7 @@ import com.mola.domain.tripBoard.comment.dto.CommentDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostListResponseDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostResponseDto;
 import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
@@ -30,6 +31,17 @@ public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
 
     @Override
     public TripPostResponseDto getTripPostResponseDtoById(Long tripPostId, Long memberId) {
+
+        TripPostStatus status = jpaQueryFactory
+                .select(tripPost.tripPostStatus)
+                .from(tripPost)
+                .where(tripPost.id.eq(tripPostId))
+                .fetchOne();
+
+        if (status == TripPostStatus.DRAFT) {
+            return new TripPostResponseDto(tripPostId, null, null, null, null, TripPostStatus.DRAFT, 0, false, null, null, null);
+        }
+
         BooleanExpression isLike = JPAExpressions
                 .selectOne()
                 .from(likes)
@@ -37,7 +49,7 @@ public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
                         .and(likes.member.id.eq(memberId)))
                 .exists();
 
-        TripPostResponseDto tripPostDto = jpaQueryFactory
+        return jpaQueryFactory
                 .select(Projections.constructor(TripPostResponseDto.class,
                         tripPost.id,
                         member.id,
@@ -56,13 +68,6 @@ public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
                 .join(tripPost.tripPlan, tripPlan)
                 .where(tripPost.id.eq(tripPostId))
                 .fetchOne();
-
-        if (tripPostDto != null) {
-            Page<CommentDto> comments = getCommentsForTripPost(tripPostId, PageRequest.of(0, 10));
-            tripPostDto.setCommentDtos(comments);
-        }
-
-        return tripPostDto;
     }
 
     @Override
@@ -99,25 +104,36 @@ public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
         return tripPostStatus == TripPostStatus.PUBLIC;
     }
 
-    public Page<TripPostListResponseDto> getAllTripPostResponseDto(Pageable pageable) {
-        BooleanExpression publicFilter = tripPost.tripPostStatus.eq(TripPostStatus.PUBLIC);
+    @Override
+    public Page<TripPostListResponseDto> getAllTripPostResponseDto(Long memberId, TripPostStatus status, Pageable pageable) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (memberId != null) {
+            builder.and(tripPost.member.id.eq(memberId).and(tripPost.tripPostStatus.ne(TripPostStatus.DRAFT)));
+        }
+
+        if (status != null) {
+            builder.and(tripPost.tripPostStatus.eq(status));
+        }
+
         List<TripPostListResponseDto> content = jpaQueryFactory
                 .select(Projections.constructor(TripPostListResponseDto.class,
                         tripPost.id,
                         tripPost.name,
                         member.nickname,
                         tripPost.representationImageUrl,
+                        tripPost.tripPostStatus,
                         tripPost.comments.size(),
                         tripPost.likeCount))
                 .from(tripPost)
                 .join(tripPost.member, member)
-                .where(publicFilter)
+                .where(builder)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
         long total = jpaQueryFactory.selectFrom(tripPost)
-                .where(publicFilter)
+                .where(builder)
                 .fetchCount();
 
         return new PageImpl<>(content, pageable, total);

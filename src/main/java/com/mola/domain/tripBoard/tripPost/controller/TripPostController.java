@@ -8,6 +8,7 @@ import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RequiredArgsConstructor
+@Slf4j
 @RestController
 @RequestMapping(value = "/tripPosts")
 public class TripPostController {
@@ -38,8 +40,16 @@ public class TripPostController {
         return ResponseEntity.ok(tripPostService.getTripPostResponseDto(id));
     }
 
+    @GetMapping("/myPosts")
+    public ResponseEntity<Page<TripPostListResponseDto>> getMyTripPosts(
+            @PageableDefault(size = 10) Pageable pageable) {
+        Page<TripPostListResponseDto> allTripPosts = tripPostService.getAllMyPosts(pageable);
+        return ResponseEntity.ok(allTripPosts);
+    }
+
     @PostMapping("/draft")
     public ResponseEntity<Map<String, Long>> createDraftTripPost(){
+        log.info("call createDraftTripPost");
         return ResponseEntity.status(HttpStatus.CREATED).body(tripPostService.createDraftTripPost());
     }
 
@@ -49,6 +59,8 @@ public class TripPostController {
         if(errors.hasErrors()){
             throw new CustomException(GlobalErrorCode.MissingRequireData);
         }
+
+        log.info("{}", tripPostDto);
 
         return ResponseEntity.ok(tripPostService.save(tripPostDto));
     }

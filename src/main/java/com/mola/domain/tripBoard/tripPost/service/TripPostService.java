@@ -13,6 +13,7 @@ import com.mola.domain.tripBoard.tripPost.dto.TripPostDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostListResponseDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostResponseDto;
 import com.mola.domain.tripBoard.tripPost.entity.TripPost;
+import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
 import com.mola.domain.tripBoard.tripPost.repository.TripPostRepository;
 import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
@@ -61,7 +62,12 @@ public class TripPostService {
     private static final long RETRY_DELAY = 100;
 
     public Page<TripPostListResponseDto> getAllTripPosts(Pageable pageable) {
-        return tripPostRepository.getAllTripPostResponseDto(pageable);
+        return tripPostRepository.getAllTripPostResponseDto(null, TripPostStatus.PUBLIC, pageable);
+    }
+
+    public Page<TripPostListResponseDto> getAllMyPosts(Pageable pageable){
+        Long memberId = getAuthenticatedMemberId();
+        return tripPostRepository.getAllTripPostResponseDto(memberId, null, pageable);
     }
 
     public boolean isPublic(Long id) {

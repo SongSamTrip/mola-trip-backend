@@ -1,5 +1,6 @@
 package com.mola.domain.tripBoard.tripPost.dto;
 
+import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
 import lombok.*;
 
 @AllArgsConstructor
@@ -16,6 +17,8 @@ public class TripPostListResponseDto {
     private String writer;
 
     private String imageUrl;
+
+    private TripPostStatus tripPostStatus;
 
     private int commentCount;
 
