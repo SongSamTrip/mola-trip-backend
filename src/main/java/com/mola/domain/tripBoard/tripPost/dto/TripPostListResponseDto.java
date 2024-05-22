@@ -13,6 +13,10 @@ public class TripPostListResponseDto {
 
     private String name;
 
+    private String writer;
+
+    private String imageUrl;
+
     private int commentCount;
 
     private int likeCount;

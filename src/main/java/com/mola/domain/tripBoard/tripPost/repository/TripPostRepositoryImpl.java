@@ -105,9 +105,12 @@ public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
                 .select(Projections.constructor(TripPostListResponseDto.class,
                         tripPost.id,
                         tripPost.name,
+                        member.nickname,
+                        tripPost.representationImageUrl,
                         tripPost.comments.size(),
                         tripPost.likeCount))
                 .from(tripPost)
+                .join(tripPost.member, member)
                 .where(publicFilter)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
