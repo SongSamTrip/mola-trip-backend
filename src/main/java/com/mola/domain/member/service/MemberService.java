@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -43,9 +42,12 @@ public class MemberService {
         return null;
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     public Page<MemberResponseDto> getMembersForAdmin(Pageable pageable) {
         return memberRepository.findMembersForAdmin(pageable);
+    }
+
+    public void adminDeleteMember(Long memberId) {
+        memberRepository.deleteById(memberId);
     }
 
     public Long requestAdmin(String key){
