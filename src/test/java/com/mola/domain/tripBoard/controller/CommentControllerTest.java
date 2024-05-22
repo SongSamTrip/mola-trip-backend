@@ -12,6 +12,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -47,10 +49,11 @@ class CommentControllerTest {
     @Test
     void getComment() throws Exception {
         // given
-        List<CommentDto> comments = new ArrayList<>();
+        List<CommentDto> commentDtoList = new ArrayList<>();
         LongStream.range(1, 10).forEach(i -> {
-            comments.add(new CommentDto());
+            commentDtoList.add(new CommentDto());
         });
+        Page<CommentDto> comments = new PageImpl<>(commentDtoList);
         doReturn(comments).when(commentService).getAllComments(anyLong(), any());
 
         // when
