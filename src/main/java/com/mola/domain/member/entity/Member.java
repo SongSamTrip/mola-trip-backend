@@ -59,6 +59,9 @@ public class Member extends BaseEntity {
     @Column(name = "login_provider")
     private LoginProvider loginProvider;
 
+    @Enumerated(EnumType.STRING)
+    private MemberRole memberRole = MemberRole.USER;
+
     public void updateRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
     }
