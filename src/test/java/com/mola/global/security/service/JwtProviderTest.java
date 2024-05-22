@@ -1,22 +1,11 @@
 package com.mola.global.security.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.member.entity.MemberRole;
 import com.mola.domain.member.repository.MemberRepository;
 import com.mola.global.auth.JwtProvider;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +17,11 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JwtProviderTest {
@@ -55,7 +49,7 @@ class JwtProviderTest {
         Long memberId = 1L;
         String ImageUrl = "http://naver.com";
         String nickName = "swh";
-        String accessToken = jwtProvider.createAccessToken(memberId, ImageUrl,nickName);
+        String accessToken = jwtProvider.createAccessToken(memberId, ImageUrl,nickName, String.valueOf(MemberRole.USER));
 
         //when
         DecodedJWT jwt = JWT.decode(accessToken);
@@ -93,7 +87,7 @@ class JwtProviderTest {
         String ImageUrl = "http://naver.com";
         String nickName = "swh";
 
-        String accessToken = jwtProvider.createAccessToken(memberId, ImageUrl, nickName);
+        String accessToken = jwtProvider.createAccessToken(memberId, ImageUrl, nickName, String.valueOf(MemberRole.USER));
 
         //when
         boolean result = jwtProvider.verifyToken(accessToken);
@@ -110,7 +104,7 @@ class JwtProviderTest {
         String ImageUrl = "http://naver.com";
         String nickName = "swh";
 
-        String accessToken = jwtProvider.createAccessToken(memberId, ImageUrl, nickName);
+        String accessToken = jwtProvider.createAccessToken(memberId, ImageUrl, nickName, String.valueOf(MemberRole.USER));
         accessToken = accessToken.substring(0, 3);
 
         //when
@@ -163,7 +157,7 @@ class JwtProviderTest {
         String ImageUrl = "http://naver.com";
         String nickName = "swh";
 
-        String accessToken = jwtProvider.createAccessToken(validMemberId, ImageUrl, nickName);
+        String accessToken = jwtProvider.createAccessToken(validMemberId, ImageUrl, nickName, String.valueOf(MemberRole.USER));
 
         //when
         Long tokenMemberId = jwtProvider.extractMemberIdFromToken(accessToken);
@@ -198,7 +192,7 @@ class JwtProviderTest {
         Long validMemberId = 1L;
         String ImageUrl = "http://naver.com";
         String nickName = "swh";
-        String accessToken = jwtProvider.createAccessToken(validMemberId, ImageUrl, nickName);
+        String accessToken = jwtProvider.createAccessToken(validMemberId, ImageUrl, nickName, String.valueOf(MemberRole.USER));
         when(accessor.getFirstNativeHeader("Authorization")).thenReturn(accessToken);
 
         // when
