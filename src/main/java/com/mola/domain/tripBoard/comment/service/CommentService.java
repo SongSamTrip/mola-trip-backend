@@ -83,6 +83,7 @@ public class CommentService {
 
     @Transactional
     public void delete(Long tripPostId, Long commentId){
+
         validateTripPost(tripPostId);
 
         Comment comment = commentRepository.findById(commentId)
