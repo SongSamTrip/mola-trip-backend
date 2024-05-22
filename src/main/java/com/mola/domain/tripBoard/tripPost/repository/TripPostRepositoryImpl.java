@@ -5,6 +5,7 @@ import com.mola.domain.tripBoard.comment.dto.CommentDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostListResponseDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostResponseDto;
 import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
+import com.mola.global.util.QueryDslUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -31,7 +32,6 @@ public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
 
     @Override
     public TripPostResponseDto getTripPostResponseDtoById(Long tripPostId, Long memberId) {
-
         TripPostStatus status = jpaQueryFactory
                 .select(tripPost.tripPostStatus)
                 .from(tripPost)
@@ -39,7 +39,7 @@ public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
                 .fetchOne();
 
         if (status == TripPostStatus.DRAFT) {
-            return new TripPostResponseDto(tripPostId, null, null, null, null, TripPostStatus.DRAFT, 0, false, null, null, null);
+            return new TripPostResponseDto(tripPostId, null, null, null, null, TripPostStatus.DRAFT, 0, false, null, null, null, null);
         }
 
         BooleanExpression isLike = JPAExpressions
@@ -49,7 +49,7 @@ public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
                         .and(likes.member.id.eq(memberId)))
                 .exists();
 
-        return jpaQueryFactory
+        TripPostResponseDto tripPostDto = jpaQueryFactory
                 .select(Projections.constructor(TripPostResponseDto.class,
                         tripPost.id,
                         member.id,
@@ -61,13 +61,21 @@ public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
                         isLike.as("isLike"),
                         tripPlan.tripName,
                         tripPlan.id,
-                        tripPlan.mainTripList
+                        tripPlan.mainTripList,
+                        tripPost.createdDate
                 ))
                 .from(tripPost)
                 .join(tripPost.member, member)
                 .join(tripPost.tripPlan, tripPlan)
                 .where(tripPost.id.eq(tripPostId))
                 .fetchOne();
+
+        if (tripPostDto != null) {
+            Page<CommentDto> comments = getCommentsForTripPost(tripPostId, PageRequest.of(0, 10));
+            tripPostDto.setCommentDtos(comments);
+        }
+
+        return tripPostDto;
     }
 
     @Override
@@ -77,7 +85,8 @@ public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
                         comment.id,
                         member.id,
                         member.nickname,
-                        comment.content
+                        comment.content,
+                        comment.createdDate
                 ))
                 .from(comment)
                 .join(comment.member, member)
@@ -124,10 +133,12 @@ public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
                         tripPost.representationImageUrl,
                         tripPost.tripPostStatus,
                         tripPost.comments.size(),
-                        tripPost.likeCount))
+                        tripPost.likeCount,
+                        tripPost.createdDate))
                 .from(tripPost)
                 .join(tripPost.member, member)
                 .where(builder)
+                .orderBy(QueryDslUtil.getTripPostOrderSpecifier(pageable))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
