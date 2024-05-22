@@ -98,30 +98,10 @@ public class TripPostService {
         if (!isOwner(tripPostDto.getId())) {
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
-
-        TripPost tripPost = findById(tripPostDto.getId());
-
-        tripPost.toPublic();
-
-        Document doc = Jsoup.parse(tripPostDto.getContent());
-        Elements images = doc.select("img");
-        Set<String> imageUrlsInContent = images.stream()
-                .map(img -> img.attr("src"))
-                .collect(Collectors.toSet());
-
-        List<TripImage> tripImages = tripPost.getImageUrl();
-        tripImages.forEach(tripImage -> {
-            if (!imageUrlsInContent.contains(tripImage.getUrl())) {
-                tripImage.setFlag(false);
-                tripImageRepository.save(tripImage);
-            }else {
-                tripImage.setFlag(true);
-            }
-        });
-
-        modelMapper.map(tripPostDto, tripPost);
+        TripPost tripPost = extractAndSaveImageUrl(tripPostDto);
         return tripPost.getId();
     }
+
 
     @Transactional
     public void deleteTripPost(Long id){
@@ -228,5 +208,35 @@ public class TripPostService {
     private MemberTripPostDto findValidMember(Long memberId) {
         return memberRepository.findMemberTripPostDtoById(memberId)
                 .orElseThrow(() -> new CustomException(GlobalErrorCode.AccessDenied));
+    }
+    private TripPost extractAndSaveImageUrl(TripPostDto tripPostDto) {
+        TripPost tripPost = findById(tripPostDto.getId());
+        tripPost.toPublic();
+
+        Document doc = Jsoup.parse(tripPostDto.getContent());
+        Elements images = doc.select("img");
+
+        if(!images.isEmpty()){
+            String src = images.first().attr("src");
+            tripPost.setRepresentationImageUrl(src);
+            log.info("first image : {}", src);
+        }
+
+        Set<String> imageUrlsInContent = images.stream()
+                .map(img -> img.attr("src"))
+                .collect(Collectors.toSet());
+
+        List<TripImage> tripImages = tripPost.getImageUrl();
+        tripImages.forEach(tripImage -> {
+            if (!imageUrlsInContent.contains(tripImage.getUrl())) {
+                tripImage.setFlag(false);
+                tripImageRepository.save(tripImage);
+            }else {
+                tripImage.setFlag(true);
+            }
+        });
+
+        modelMapper.map(tripPostDto, tripPost);
+        return tripPost;
     }
 }
