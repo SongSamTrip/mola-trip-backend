@@ -7,6 +7,7 @@ import lombok.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 @AllArgsConstructor
@@ -44,8 +45,21 @@ public class TripPostResponseDto {
 
     private String mainList;
 
+    private LocalDateTime createdDate;
 
-    public TripPostResponseDto(Long id, Long memberId, String nickname, String name, String content, TripPostStatus tripPostStatus, int likeCount, boolean isLike, String tripName, Long tripId, String mainList) {
+
+    public TripPostResponseDto(Long id,
+                               Long memberId,
+                               String nickname,
+                               String name,
+                               String content,
+                               TripPostStatus tripPostStatus,
+                               int likeCount,
+                               boolean isLike,
+                               String tripName,
+                               Long tripId,
+                               String mainList,
+                               LocalDateTime createdDate) {
         this.id = id;
         this.memberId = memberId;
         this.nickname = nickname;
@@ -58,5 +72,6 @@ public class TripPostResponseDto {
         this.tripName = tripName;
         this.tripId = tripId;
         this.mainList = mainList;
+        this.createdDate = createdDate;
     }
 }
