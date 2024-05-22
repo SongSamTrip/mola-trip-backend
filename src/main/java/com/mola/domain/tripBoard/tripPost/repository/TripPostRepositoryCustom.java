@@ -14,4 +14,5 @@ public interface TripPostRepositoryCustom {
 
     boolean isPublic(Long id);
 
+    Page<CommentDto> getCommentsForTripPost(Long tripPostId, Pageable pageable);
 }

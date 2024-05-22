@@ -12,19 +12,19 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 import static com.mola.domain.member.entity.QMember.member;
+import static com.mola.domain.trip.entity.QTripPlan.tripPlan;
 import static com.mola.domain.tripBoard.comment.entity.QComment.comment;
 import static com.mola.domain.tripBoard.like.entity.QLikes.likes;
 import static com.mola.domain.tripBoard.tripPost.entity.QTripPost.tripPost;
 
 @RequiredArgsConstructor
-@Repository
-public class TripPostQueryRepositoryImpl implements TripPostRepositoryCustom{
+public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
 
@@ -46,24 +46,28 @@ public class TripPostQueryRepositoryImpl implements TripPostRepositoryCustom{
                         tripPost.content,
                         tripPost.tripPostStatus,
                         tripPost.likeCount,
-                        isLike.as("isLike")
+                        isLike.as("isLike"),
+                        tripPlan.tripName,
+                        tripPlan.id,
+                        tripPlan.mainTripList
                 ))
                 .from(tripPost)
                 .join(tripPost.member, member)
+                .join(tripPost.tripPlan, tripPlan)
                 .where(tripPost.id.eq(tripPostId))
                 .fetchOne();
 
         if (tripPostDto != null) {
-            List<CommentDto> comments = getCommentsForTripPost(tripPostId);
-            tripPostDto.setCommentDtos((Page<CommentDto>) comments);
+            Page<CommentDto> comments = getCommentsForTripPost(tripPostId, PageRequest.of(0, 10));
+            tripPostDto.setCommentDtos(comments);
         }
 
         return tripPostDto;
     }
 
-
-    public List<CommentDto> getCommentsForTripPost(Long tripPostId) {
-        return jpaQueryFactory
+    @Override
+    public Page<CommentDto> getCommentsForTripPost(Long tripPostId, Pageable pageable) {
+        List<CommentDto> comments = jpaQueryFactory
                 .select(Projections.constructor(CommentDto.class,
                         comment.id,
                         member.id,
@@ -73,8 +77,16 @@ public class TripPostQueryRepositoryImpl implements TripPostRepositoryCustom{
                 .from(comment)
                 .join(comment.member, member)
                 .where(comment.tripPost.id.eq(tripPostId))
-                .limit(10)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
+
+        long total = jpaQueryFactory
+                .selectFrom(comment)
+                .where(comment.tripPost.id.eq(tripPostId))
+                .fetchCount();
+
+        return new PageImpl<>(comments, pageable, total);
     }
 
     @Override
@@ -87,20 +99,22 @@ public class TripPostQueryRepositoryImpl implements TripPostRepositoryCustom{
         return tripPostStatus == TripPostStatus.PUBLIC;
     }
 
-    @Override
     public Page<TripPostListResponseDto> getAllTripPostResponseDto(Pageable pageable) {
-        List<TripPostListResponseDto> content = jpaQueryFactory.select(Projections.constructor(TripPostListResponseDto.class,
+        BooleanExpression publicFilter = tripPost.tripPostStatus.eq(TripPostStatus.PUBLIC);
+        List<TripPostListResponseDto> content = jpaQueryFactory
+                .select(Projections.constructor(TripPostListResponseDto.class,
                         tripPost.id,
                         tripPost.name,
                         tripPost.comments.size(),
                         tripPost.likeCount))
                 .from(tripPost)
-                .where(tripPost.tripPostStatus.eq(TripPostStatus.PUBLIC))
+                .where(publicFilter)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
         long total = jpaQueryFactory.selectFrom(tripPost)
+                .where(publicFilter)
                 .fetchCount();
 
         return new PageImpl<>(content, pageable, total);
