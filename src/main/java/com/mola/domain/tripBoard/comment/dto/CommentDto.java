@@ -6,6 +6,8 @@ import com.mola.domain.tripBoard.comment.entity.Comment;
 import com.mola.domain.tripBoard.tripPost.entity.TripPost;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -19,6 +21,8 @@ public class CommentDto {
 
     private String content;
 
+    private LocalDateTime createdDate;
+
     public Comment toEntity(String content, Member member, TripPost tripPost){
         return Comment.builder()
                 .content(content)
@@ -27,9 +31,10 @@ public class CommentDto {
                 .build();
     }
 
-    public CommentDto (Long commentId, Long id, String nickname, String content){
+    public CommentDto (Long commentId, Long id, String nickname, String content, LocalDateTime createdDate){
         this.id = commentId;
         this.memberTripPostDto = new MemberTripPostDto(id, nickname);
         this.content = content;
+        this.createdDate = createdDate;
     }
 }
