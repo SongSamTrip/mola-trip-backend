@@ -18,6 +18,7 @@ public class TripImage extends BaseEntity {
 
     @Id @GeneratedValue
     private Long id;
+    @Lob
     private String url;
     @ManyToOne(fetch = FetchType.LAZY)
     private TripPost tripPost;
