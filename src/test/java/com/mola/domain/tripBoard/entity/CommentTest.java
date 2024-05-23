@@ -28,6 +28,9 @@ class CommentTest {
         // then
         assertTrue(member.getComments().contains(comment));
         assertTrue(tripPost.getComments().contains(comment));
+        assertNotNull(comment.getTripPost());
     }
+
+
 
 }
