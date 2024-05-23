@@ -68,30 +68,24 @@ public class CommentService {
     public CommentDto update(Long tripPostId, Long commentId, CommentDto commentDto){
         validateTripPost(tripPostId);
 
-        Member member = memberRepository.findById(commentDto.getMemberTripPostDto().getId())
-                .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidMemberIdentifierFormat));
-
-        String name = SecurityContextHolder.getContext().getAuthentication().getName();
-        if(!name.equals(String.valueOf(member.getId()))){
+        Long memberId = getAuthenticatedMemberId();
+        if(!commentRepository.isUserAuthorizedForComment(commentId, memberId)){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
 
         Comment comment = findById(commentId);
         comment.setContent(commentDto.getContent());
 
-        return Comment.toCommentDto(comment);
+        return Comment.toCommentDto(commentRepository.save(comment));
     }
 
     @Transactional
     public void delete(Long tripPostId, Long commentId){
         validateTripPost(tripPostId);
 
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidMemberIdentifierFormat));
-
-        String name = SecurityContextHolder.getContext().getAuthentication().getName();
-        if(!name.equals(String.valueOf(comment.getMember().getId()))
-                && !memberRepository.findRoleByMemberId(Long.valueOf(name)).equals(MemberRole.ADMIN)){
+        Long memberId = getAuthenticatedMemberId();
+        if(!commentRepository.isUserAuthorizedForComment(commentId, memberId)
+                && !memberRepository.findRoleByMemberId(memberId).equals(MemberRole.ADMIN)){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
 
@@ -99,14 +93,14 @@ public class CommentService {
     }
 
 
-    private Long getAuthenticatedMemberId() {
+    public Long getAuthenticatedMemberId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
         return Long.valueOf(authentication.getName());
     }
-    private void validateTripPost(Long tripPostId) {
+    public void validateTripPost(Long tripPostId) {
         if(!tripPostService.isPublic(tripPostId)){
             throw new CustomException(GlobalErrorCode.InvalidTripPostIdentifier);
         }
