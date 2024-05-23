@@ -84,8 +84,11 @@ public class CommentService {
         validateTripPost(tripPostId);
 
         Long memberId = getAuthenticatedMemberId();
-        if(!commentRepository.isUserAuthorizedForComment(commentId, memberId)
-                && !memberRepository.findRoleByMemberId(memberId).equals(MemberRole.ADMIN)){
+
+        if(!commentRepository.isUserAuthorizedForComment(commentId, memberId)){
+            throw new CustomException(GlobalErrorCode.AccessDenied);
+        }
+        if(!memberRepository.findRoleByMemberId(memberId).equals(MemberRole.ADMIN)){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
 
