@@ -1,13 +1,10 @@
 package com.mola.domain.tripBoard.tripPost.entity;
 
-import com.mola.domain.member.dto.MemberTripPostDto;
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.trip.entity.TripPlan;
 import com.mola.domain.tripBoard.comment.entity.Comment;
 import com.mola.domain.tripBoard.like.entity.Likes;
 import com.mola.domain.tripBoard.tripImage.entity.TripImage;
-import com.mola.domain.tripBoard.tripPost.dto.TripPostListResponseDto;
-import com.mola.domain.tripBoard.tripPost.dto.TripPostResponseDto;
 import com.mola.global.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

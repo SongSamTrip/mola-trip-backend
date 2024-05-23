@@ -85,7 +85,10 @@ public class TripPostService {
 
     public TripPostResponseDto getTripPostResponseDto(Long id){
         Long memberId = getAuthenticatedMemberId();
-        if(!isOwner(id) && !memberRepository.findRoleByMemberId(memberId).equals(MemberRole.ADMIN)){
+        boolean isPublic = tripPostRepository.isPublic(id);
+        if(!isOwner(memberId)
+                && !isPublic
+                && !memberRepository.findRoleByMemberId(memberId).equals(MemberRole.ADMIN)){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
         return tripPostRepository.getTripPostResponseDtoById(id, memberId);
@@ -119,7 +122,7 @@ public class TripPostService {
 
     @Transactional
     public void deleteTripPost(Long id){
-        if(!isOwner(id)){
+        if(!isOwner(id) && !memberRepository.findRoleByMemberId(getAuthenticatedMemberId()).equals(MemberRole.ADMIN)){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
 

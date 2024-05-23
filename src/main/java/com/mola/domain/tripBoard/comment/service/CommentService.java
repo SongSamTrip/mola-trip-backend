@@ -1,6 +1,7 @@
 package com.mola.domain.tripBoard.comment.service;
 
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.member.entity.MemberRole;
 import com.mola.domain.member.repository.MemberRepository;
 import com.mola.domain.tripBoard.comment.dto.CommentDto;
 import com.mola.domain.tripBoard.comment.entity.Comment;
@@ -83,14 +84,14 @@ public class CommentService {
 
     @Transactional
     public void delete(Long tripPostId, Long commentId){
-
         validateTripPost(tripPostId);
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException(GlobalErrorCode.InvalidMemberIdentifierFormat));
 
         String name = SecurityContextHolder.getContext().getAuthentication().getName();
-        if(!name.equals(String.valueOf(comment.getMember().getId()))){
+        if(!name.equals(String.valueOf(comment.getMember().getId()))
+                && !memberRepository.findRoleByMemberId(Long.valueOf(name)).equals(MemberRole.ADMIN)){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
 
