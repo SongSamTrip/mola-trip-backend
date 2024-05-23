@@ -169,6 +169,7 @@ class CommentServiceTest {
         doNothing().when(commentService).validateTripPost(VALID_ID);
         doReturn(VALID_ID).when(commentService).getAuthenticatedMemberId();
         when(commentRepository.isUserAuthorizedForComment(VALID_ID,VALID_ID)).thenReturn(true);
+        when(memberRepository.findRoleByMemberId(VALID_ID)).thenReturn(MemberRole.ADMIN);
 
         // expected
         assertDoesNotThrow(() -> commentService.delete(VALID_ID, VALID_ID));
