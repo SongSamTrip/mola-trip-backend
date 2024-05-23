@@ -157,7 +157,7 @@ public class TripPostService {
         return tripPostRepository.getCommentsForTripPost(postId, pageable);
     }
 
-    private Long getAuthenticatedMemberId() {
+    public Long getAuthenticatedMemberId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new CustomException(GlobalErrorCode.AccessDenied);
