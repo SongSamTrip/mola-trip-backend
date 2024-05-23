@@ -35,14 +35,14 @@ public class MemberController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/members/admin/{id}")
-    public ResponseEntity<?> adminDeleteMember(@PathVariable Long id){
+    public ResponseEntity<?> adminDeleteMember(@PathVariable("id") Long id){
         memberService.adminDeleteMember(id);
         return ResponseEntity.ok().build();
     }
 
 
     @PostMapping("/members/admin")
-    public ResponseEntity<Long> requestAdmin(@RequestBody String secretKey) {
+    public ResponseEntity<Long> requestAdmin(@RequestParam("secretKey") String secretKey) {
         System.out.println(securityUtil.getAuthenticatedUser());
         UserDetails authenticatedUser = securityUtil.getAuthenticatedUser();
         System.out.println(authenticatedUser.getAuthorities());
