@@ -90,6 +90,22 @@ jacocoTestReport {
 		csv.destination file(project.layout.buildDirectory.dir("jacoco/index.csv")) as File
 		html.destination file(project.layout.buildDirectory.dir("jacoco/index.html")) as File
 	}
+
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+					"**/dto/**",
+					"**/config/**",
+					"**/exception/**",
+					"**/sse/**",
+					"**/*Application.*",
+					"**/Q*.class",
+					"**/BaseEntity.class"
+
+			])
+		}))
+	}
+
 }
 
 test {
@@ -111,7 +127,9 @@ jacocoTestCoverageVerification {
 			}
 
 			excludes = [
-					'*.*Application'
+					"**/dto/**",
+					"**/config/**",
+					"**/config/**"
 			]
 		}
 
@@ -122,12 +140,12 @@ jacocoTestCoverageVerification {
 		}
 	}
 	afterEvaluate {
-		classDirectories.setFrom(
-				files(classDirectories.files.collect {
-					fileTree(dir: it, excludes: [
-							"**/*Application*",
-					])
-				})
-		)
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+					"**/dto/**",
+					"**/config/**",
+					"**/config/**"
+			])
+		}))
 	}
 }
