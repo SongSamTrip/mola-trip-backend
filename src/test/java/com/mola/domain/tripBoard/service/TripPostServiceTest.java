@@ -1,13 +1,11 @@
 package com.mola.domain.tripBoard.service;
 
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.member.entity.MemberRole;
 import com.mola.domain.member.repository.MemberRepository;
 import com.mola.domain.tripBoard.like.entity.Likes;
 import com.mola.domain.tripBoard.like.repository.LikesRepository;
-import com.mola.domain.tripBoard.tripImage.dto.TripImageDto;
 import com.mola.domain.tripBoard.tripImage.entity.TripImage;
-import com.mola.domain.tripBoard.tripPost.dto.TripPostResponseDto;
-import com.mola.domain.tripBoard.tripPost.dto.TripPostUpdateDto;
 import com.mola.domain.tripBoard.tripPost.entity.TripPost;
 import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
 import com.mola.domain.tripBoard.tripPost.repository.TripPostRepository;
@@ -20,8 +18,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
@@ -53,6 +54,7 @@ class TripPostServiceTest {
     @Mock
     SecurityContext securityContext;
 
+    @Spy
     @InjectMocks
     TripPostService tripPostService;
 
@@ -78,39 +80,14 @@ class TripPostServiceTest {
         member = Member.builder().id(1L).build();
         tripPost.setMember(member);
 
-        when(securityContext.getAuthentication()).thenReturn(new UsernamePasswordAuthenticationToken("1", null, AuthorityUtils.createAuthorityList("ROLE_USER")));
         SecurityContextHolder.setContext(securityContext);
     }
 
-//    @DisplayName("게시글이 수정될 때 이미지가 제거되면 리스트 사이즈가 변경")
-//    @Test
-//    void update() {
-//        List<TripImageDto> tripImageDtos = new ArrayList<>();
-//        LongStream.range(1, 5).forEach(i -> {
-//            tripImageDtos.add(new TripImageDto(i, "test" + i, tripPost.getId()));
-//        });
-//        TripPostUpdateDto updateDto = TripPostUpdateDto.builder()
-//                .id(tripPost.getId())
-//                .name(tripPost.getName())
-//                .content(tripPost.getContent())
-//                .tripImageList(tripImageDtos)
-//                .build();
-//
-//        doReturn(Optional.of(tripPost)).when(tripPostRepository).findById(any());
-//        doReturn(true).when(tripPostService).isOwner(any());
-//        doReturn(tripPost).when(tripPostRepository).save(any());
-//
-//        TripPostResponseDto update = tripPostService.update(updateDto);
-//
-//        assertEquals(tripPost.getId(), update.getId());
-//        assertEquals(tripPost.getName(), update.getName());
-//        assertEquals(tripPost.getContent(), update.getContent());
-//        assertEquals(tripPost.getImageUrl().size(), 4);
-//    }
 
     @DisplayName("인증된 회원이 존재하는 게시글에 좋아요를 누르면 좋아요 갯수가 증가")
     @Test
     void whenUserAddLikeValidPost_success() throws InterruptedException {
+        when(securityContext.getAuthentication()).thenReturn(new UsernamePasswordAuthenticationToken("1", null, AuthorityUtils.createAuthorityList("ROLE_USER")));
         when(tripPostRepository.existsById(anyLong())).thenReturn(true);
         when(likesRepository.existsByMemberIdAndTripPostId(anyLong(), anyLong())).thenReturn(false);
         when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
@@ -125,6 +102,7 @@ class TripPostServiceTest {
     @DisplayName("좋아요 요청 중 충돌이 일어나면 재시도 로직이 동작")
     @Test
     void testAddLikeRetryLogicOnOptimisticLockException() throws InterruptedException {
+        when(securityContext.getAuthentication()).thenReturn(new UsernamePasswordAuthenticationToken("1", null, AuthorityUtils.createAuthorityList("ROLE_USER")));
         when(tripPostRepository.existsById(anyLong())).thenReturn(true);
         when(likesRepository.existsByMemberIdAndTripPostId(anyLong(), anyLong())).thenReturn(false);
         when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
@@ -140,6 +118,7 @@ class TripPostServiceTest {
     @DisplayName("인증된 회원이 존재하는 게시글에 좋아요를 취소하면 좋아요 갯수가 감소")
     @Test
     void whenUserRemoveLikeValidPost_success() throws InterruptedException {
+        when(securityContext.getAuthentication()).thenReturn(new UsernamePasswordAuthenticationToken("1", null, AuthorityUtils.createAuthorityList("ROLE_USER")));
         tripPost.setLikeCount(1);
         Likes likes = new Likes();
         likes.setMember(member);
@@ -160,6 +139,7 @@ class TripPostServiceTest {
     @DisplayName("좋아요 취소 요청 시 충돌이 일어나면 재시도 로직이 동작")
     @Test
     void testRemoveLikeRetryLogicOnOptimisticLockException() throws InterruptedException {
+        when(securityContext.getAuthentication()).thenReturn(new UsernamePasswordAuthenticationToken("1", null, AuthorityUtils.createAuthorityList("ROLE_USER")));
         when(tripPostRepository.existsById(anyLong())).thenReturn(true);
         when(likesRepository.existsByMemberIdAndTripPostId(anyLong(), anyLong())).thenReturn(true);
         when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
@@ -169,4 +149,109 @@ class TripPostServiceTest {
         assertThrows(CustomException.class, () -> tripPostService.removeLikes(1L));
         verify(tripPostRepository, times(3)).save(any(TripPost.class));
     }
+
+    @DisplayName("공개상태의 모든 게시글을 조회")
+    @Test
+    void getAllTripPosts_success() {
+        // given
+        PageRequest pageRequest = PageRequest.of(1, 10);
+        when(tripPostRepository.getAllTripPostResponseDto(null, TripPostStatus.PUBLIC, pageRequest))
+                .thenReturn(new PageImpl<>(new ArrayList<>()));
+
+        // when
+        tripPostService.getAllTripPosts(pageRequest);
+
+        // then
+        verify(tripPostRepository, times(1)).getAllTripPostResponseDto(null, TripPostStatus.PUBLIC, pageRequest);
+    }
+
+    @DisplayName("본인이 작성한 게시글을 조회")
+    @Test
+    void getAllMyPosts() {
+        // given
+        PageRequest pageRequest = PageRequest.of(1, 10);
+        doReturn(member.getId()).when(tripPostService).getAuthenticatedMemberId();
+        when(tripPostRepository.getAllTripPostResponseDto(member.getId(), null, pageRequest))
+                .thenReturn(new PageImpl<>(new ArrayList<>()));
+
+        // when
+        tripPostService.getAllMyPosts(pageRequest);
+
+        // then
+        verify(tripPostRepository, times(1)).getAllTripPostResponseDto(member.getId(), null, pageRequest);
+    }
+
+    @DisplayName("본인이 작성한 게시글을 조회")
+    @Test
+    void adminGetAllMyPosts() {
+        // given
+        PageRequest pageRequest = PageRequest.of(1, 10);
+        when(tripPostRepository.getAllTripPostResponseDto(null, null, pageRequest))
+                .thenReturn(new PageImpl<>(new ArrayList<>()));
+
+        // when
+        tripPostService.adminGetAllPosts(pageRequest);
+
+        // then
+        verify(tripPostRepository, times(1)).getAllTripPostResponseDto(null, null, pageRequest);
+    }
+
+    @DisplayName("공개상태의 게시글이라면 true 반환")
+    @Test
+    void isPublic_true() {
+        // given
+        when(tripPostRepository.isPublic(tripPost.getId())).thenReturn(true);
+
+        // when
+        boolean aPublic = tripPostService.isPublic(tripPost.getId());
+
+        //then
+        assertTrue(aPublic);
+        verify(tripPostRepository, times(1)).isPublic(tripPost.getId());
+    }
+
+    @DisplayName("존재하는 게시글이라면 true 반환")
+    @Test
+    void existsTripPost() {
+        // given
+        when(tripPostRepository.existsById(tripPost.getId())).thenReturn(true);
+
+        // when
+        boolean aPublic = tripPostService.existsTripPost(tripPost.getId());
+
+        // then
+        assertTrue(aPublic);
+        verify(tripPostRepository, times(1)).existsById(tripPost.getId());
+    }
+
+    @DisplayName("권한이 있는 사용자라면 게시글 상세 dto를 반환")
+    @Test
+    void getTripPostResponseDto_success() {
+        // given
+        doReturn(member.getId()).when(tripPostService).getAuthenticatedMemberId();
+        when(tripPostRepository.isPublic(anyLong())).thenReturn(true);
+        doReturn(true).when(tripPostService).isOwner(anyLong());
+//        when(memberRepository.findRoleByMemberId(anyLong())).thenReturn(MemberRole.ADMIN);
+
+        // when
+        tripPostService.getTripPostResponseDto(tripPost.getId());
+
+        // then
+        verify(tripPostRepository, times(1)).getTripPostResponseDtoById(anyLong(), anyLong());
+    }
+
+    @DisplayName("작성한 사용자가 아니라면 게시글 상세 에러를 발생")
+    @Test
+    void getTripPostResponseDto_throwException() {
+        // given
+        doReturn(member.getId()).when(tripPostService).getAuthenticatedMemberId();
+        when(tripPostRepository.isPublic(anyLong())).thenReturn(false);
+        doReturn(false).when(tripPostService).isOwner(anyLong());
+        when(memberRepository.findRoleByMemberId(anyLong())).thenReturn(MemberRole.USER);
+
+        // expected
+        assertThrows(CustomException.class, () -> tripPostService.getTripPostResponseDto(tripPost.getId()));
+
+    }
+
 }
