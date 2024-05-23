@@ -50,6 +50,7 @@ class TripPostRepositoryTest {
 
     @Test
     void findAll() {
+        // given
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -77,10 +78,11 @@ class TripPostRepositoryTest {
         em.flush();
         em.clear();
 
-        System.out.println("====================================================");
+        // when
+        Page<TripPostListResponseDto> all = tripPostRepository.getAllTripPostResponseDto(null, null, pageable);
 
-//        Page<TripPostListResponseDto> all = tripPostRepository.getAllTripPostResponseDto(pageable);
-//        all.stream().forEach(trip ->
-//                System.out.println(trip.getCommentCount()));
+        // then
+        all.stream().forEach(trip ->
+                System.out.println(trip.getCommentCount()));
     }
 }
