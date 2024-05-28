@@ -382,7 +382,28 @@ class TripPostServiceTest {
 
         // expected
         assertDoesNotThrow(() -> tripPostService.deleteTripPost(VALID_ID));
-        tripPost.getImageUrl();
+    }
+
+    @DisplayName("tripPost 작성자가 아닌 사용자의 삭제요청은 에러를 발생")
+    @Test
+    void deleteTripPost_throwsException() {
+        // given
+        doReturn(false).when(tripPostService).isOwner(anyLong());
+        doReturn(INVALID_ID).when(tripPostService).getAuthenticatedMemberId();
+        when(memberRepository.findRoleByMemberId(INVALID_ID)).thenReturn(MemberRole.USER);
+
+        // expected
+        assertThrows(CustomException.class, () -> tripPostService.deleteTripPost(VALID_ID));
+    }
+
+    @DisplayName("관리자의 tripPost 삭제요청은 정상 처리")
+    @Test
+    void deleteAdminTripPost_success() {
+        // given
+        doReturn(tripPost).when(tripPostService).findById(anyLong());
+
+        // expected
+        assertDoesNotThrow(() -> tripPostService.deleteAdminTripPost(VALID_ID));
     }
 
 }
