@@ -1,10 +1,8 @@
 package com.mola.domain.tripBoard.tripPost.service;
 
-import com.mola.domain.member.dto.MemberTripPostDto;
 import com.mola.domain.member.entity.Member;
 import com.mola.domain.member.entity.MemberRole;
 import com.mola.domain.member.repository.MemberRepository;
-import com.mola.domain.trip.repository.TripPlanRepository;
 import com.mola.domain.tripBoard.comment.dto.CommentDto;
 import com.mola.domain.tripBoard.like.entity.Likes;
 import com.mola.domain.tripBoard.like.repository.LikesRepository;
@@ -47,8 +45,6 @@ public class TripPostService {
     private final TripPostRepository tripPostRepository;
 
     private final TripImageRepository tripImageRepository;
-
-    private final TripPlanRepository tripPlanRepository;
 
     private final MemberRepository memberRepository;
 
@@ -217,16 +213,6 @@ public class TripPostService {
         return authentication.getName().equals(String.valueOf(byId.getMember().getId()));
     }
 
-    public void validateTripPlan(Long tripPlanId){
-        if(!tripPlanRepository.existsById(tripPlanId)){
-            throw new CustomException(GlobalErrorCode.InvalidTripPlan);
-        }
-    }
-
-    private MemberTripPostDto findValidMember(Long memberId) {
-        return memberRepository.findMemberTripPostDtoById(memberId)
-                .orElseThrow(() -> new CustomException(GlobalErrorCode.AccessDenied));
-    }
     private TripPost extractAndSaveImageUrl(TripPostDto tripPostDto) {
         TripPost tripPost = findById(tripPostDto.getId());
         tripPost.toPublic();
@@ -243,6 +229,7 @@ public class TripPostService {
         Set<String> imageUrlsInContent = images.stream()
                 .map(img -> img.attr("src"))
                 .collect(Collectors.toSet());
+
 
         List<TripImage> tripImages = tripPost.getImageUrl();
         tripImages.forEach(tripImage -> {
