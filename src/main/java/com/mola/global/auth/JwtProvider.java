@@ -12,9 +12,6 @@ import com.mola.domain.member.repository.MemberRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -115,23 +112,6 @@ public class JwtProvider {
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid token");
         }
-    }
-
-    public Authentication extractAuthenticationFromStompHeaderAccessor(StompHeaderAccessor accessor){
-        String authorization = accessor.getFirstNativeHeader("Authorization");
-        if (authorization != null && authorization.startsWith("Bearer ")) {
-            String token = authorization.substring(7);
-
-            if (verifyToken(token)) {
-                Long memberId = extractMemberIdFromToken(token);
-                UserDetails user = createUserDetails(memberId, "ROLE_USER");
-
-                return new UsernamePasswordAuthenticationToken(
-                        user, "", user.getAuthorities());
-            }
-        }
-
-        return null;
     }
 
     public UserDetails createUserDetails(Long memberId, String role) {
