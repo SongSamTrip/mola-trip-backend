@@ -39,7 +39,7 @@ public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
                 .fetchOne();
 
         if (status == TripPostStatus.DRAFT) {
-            return new TripPostResponseDto(tripPostId, null, null, null, null, TripPostStatus.DRAFT, 0, false, null, null, null, null);
+            return new TripPostResponseDto(tripPostId, memberId, null, null, null, TripPostStatus.DRAFT, 0, false, null, null, null, null);
         }
 
         BooleanExpression isLike = JPAExpressions
