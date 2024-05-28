@@ -10,6 +10,7 @@ import com.mola.domain.tripBoard.tripPost.entity.TripPost;
 import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
 import com.mola.domain.tripBoard.tripPost.service.TripPostService;
 import com.mola.fixture.Fixture;
+import com.mola.global.exception.CustomException;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,6 +33,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
@@ -127,6 +129,22 @@ class CommentServiceTest {
         assertThat(dto.getMemberTripPostDto().getId()).isEqualTo(VALID_ID);
     }
 
+    @DisplayName("회원이 아니라면 댓글을 저장할 때 에러를 발생")
+    @Test
+    void saveComment_throwException() {
+        // given
+        String content = "test";
+
+        doNothing().when(commentService).validateTripPost(anyLong());
+        doReturn(INVALID_ID).when(commentService).getAuthenticatedMemberId();
+        when(entityManager.getReference(TripPost.class, INVALID_ID)).thenReturn(tripPost);
+        when(memberRepository.existsById(anyLong())).thenReturn(false);
+
+        // expected
+        assertThrows(CustomException.class, () -> commentService.save(INVALID_ID, content));
+        verify(commentRepository, never()).save(any(Comment.class));
+    }
+
 
     @DisplayName("댓글 작성자가 댓글을 수정할 수 있다")
     @Test
@@ -151,14 +169,12 @@ class CommentServiceTest {
     @Test
     void saveComment_throwsException() {
         // given
-        doNothing().when(commentService).validateTripPost(VALID_ID);
-        doReturn(VALID_ID).when(commentService).getAuthenticatedMemberId();
-        doReturn(comment).when(commentService).findById(VALID_ID);
+        doNothing().when(commentService).validateTripPost(INVALID_ID);
+        doReturn(INVALID_ID).when(commentService).getAuthenticatedMemberId();
         when(commentRepository.isUserAuthorizedForComment(INVALID_ID, INVALID_ID)).thenReturn(false);
-        when(commentRepository.save(any(Comment.class))).thenReturn(comment);
 
         // expected
-        assertThatThrownBy(() -> commentService.update(INVALID_ID,INVALID_ID,commentDto));
+        assertThrows(CustomException.class, () -> commentService.update(INVALID_ID,INVALID_ID,commentDto));
         verify(commentRepository, never()).save(any(Comment.class));
     }
 
@@ -180,13 +196,26 @@ class CommentServiceTest {
     @Test
     void deleteComment_throwsException() {
         // given
-        doNothing().when(commentService).validateTripPost(VALID_ID);
-        doReturn(VALID_ID).when(commentService).getAuthenticatedMemberId();
+        doNothing().when(commentService).validateTripPost(INVALID_ID);
+        doReturn(INVALID_ID).when(commentService).getAuthenticatedMemberId();
         when(commentRepository.isUserAuthorizedForComment(INVALID_ID, INVALID_ID)).thenReturn(false);
+
+        // expected
+        assertThrows(CustomException.class, () -> commentService.delete(INVALID_ID, INVALID_ID));
+        verify(commentRepository, never()).deleteById(anyLong());
+    }
+
+    @DisplayName("댓글 작성자 혹은 관리자가 아니라면 댓글 삭제 요청 시 에러 발생")
+    @Test
+    void deleteComment2_throwsException() {
+        // given
+        doNothing().when(commentService).validateTripPost(INVALID_ID);
+        doReturn(INVALID_ID).when(commentService).getAuthenticatedMemberId();
+        when(commentRepository.isUserAuthorizedForComment(anyLong(), anyLong())).thenReturn(true);
         when(memberRepository.findRoleByMemberId(INVALID_ID)).thenReturn(MemberRole.USER);
 
         // expected
-        assertThatThrownBy(() -> commentService.delete(INVALID_ID, INVALID_ID));
+        assertThrows(CustomException.class, () -> commentService.delete(INVALID_ID, INVALID_ID));
         verify(commentRepository, never()).deleteById(anyLong());
     }
 
