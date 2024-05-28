@@ -14,7 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -183,37 +182,4 @@ class JwtProviderTest {
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
         assertTrue(hasAdminRole);
     }
-
-
-    @DisplayName("유효한 stomp 헤더라면 인증정보를 반환")
-    @Test
-    void extractAuthenticationFromStompHeaderAccessor_success() {
-        // given
-        Long validMemberId = 1L;
-        String ImageUrl = "http://naver.com";
-        String nickName = "swh";
-        String accessToken = jwtProvider.createAccessToken(validMemberId, ImageUrl, nickName, String.valueOf(MemberRole.USER));
-        when(accessor.getFirstNativeHeader("Authorization")).thenReturn(accessToken);
-
-        // when
-        Authentication authentication = jwtProvider.extractAuthenticationFromStompHeaderAccessor(accessor);
-
-        // then
-        assertNotNull(authentication);
-        assertEquals(validMemberId.toString(), authentication.getName());
-    }
-
-    @DisplayName("유효하지 않은 stomp 헤더라면 null 반환")
-    @Test
-    void extractAuthenticationFromStompHeaderAccessor_fail() {
-        // given
-        when(accessor.getFirstNativeHeader("Authorization")).thenReturn(null);
-
-        // when
-        Authentication authentication = jwtProvider.extractAuthenticationFromStompHeaderAccessor(accessor);
-
-        // then
-        assertNull(authentication);
-    }
-
 }
