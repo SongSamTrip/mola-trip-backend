@@ -78,6 +78,7 @@ public class TripPost extends BaseEntity {
 
     public void addComment(Comment comment){
         this.comments.add(comment);
+        comment.setTripPost(this);
     }
 
     public void addLikes(Likes likes){
