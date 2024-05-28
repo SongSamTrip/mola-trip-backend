@@ -4,7 +4,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,14 +12,17 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.UUID;
 
-@RequiredArgsConstructor
 @Service
 public class S3Service implements ImageService{
 
     private final AmazonS3 amazonS3;
 
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
+    private final String bucket;
+
+    public S3Service(AmazonS3 amazonS3, @Value("${cloud.aws.s3.bucket}")String bucket) {
+        this.amazonS3 = amazonS3;
+        this.bucket = bucket;
+    }
 
     @Transactional
     public String upload(MultipartFile multipartFile) {
