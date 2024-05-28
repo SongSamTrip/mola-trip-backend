@@ -132,7 +132,7 @@ public class TripPostService {
 
 
     @Transactional
-    public void addLikes(Long tripPostId) throws InterruptedException {
+    public void addLikes(Long tripPostId)  {
         Long memberId = getAuthenticatedMemberId();
         validateTripPostAndMember(tripPostId, memberId, true);
 
@@ -141,7 +141,7 @@ public class TripPostService {
     }
 
     @Transactional
-    public void removeLikes(Long tripPostId) throws InterruptedException {
+    public void removeLikes(Long tripPostId)  {
         Long memberId = getAuthenticatedMemberId();
         validateTripPostAndMember(tripPostId, memberId, false);
 
@@ -172,7 +172,7 @@ public class TripPostService {
         }
     }
 
-    private void performLikesOperation(TripPost post, Long memberId, boolean isAdding) throws InterruptedException {
+    private void performLikesOperation(TripPost post, Long memberId, boolean isAdding) {
         int retryCount = 0;
         while (retryCount < MAX_RETRY) {
             try {
@@ -194,7 +194,11 @@ public class TripPostService {
                 return;
             } catch (OptimisticLockException e) {
                 log.info("tripPostId: {} 충돌 발생, 재시도 중...", post.getId());
-                Thread.sleep(RETRY_DELAY);
+                try {
+                    Thread.sleep(RETRY_DELAY);
+                } catch (InterruptedException ex) {
+                    throw new CustomException(GlobalErrorCode.ExcessiveRetries);
+                }
                 retryCount++;
             }
         }
