@@ -44,6 +44,7 @@ public class TripImageService {
 
         allByTripPostId.forEach(tripImage -> {
             imageService.delete(tripImage.getUrl());
+            tripImageRepository.delete(tripImage);
         });
     }
 
