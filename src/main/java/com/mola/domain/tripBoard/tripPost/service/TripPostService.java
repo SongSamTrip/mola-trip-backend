@@ -165,9 +165,9 @@ public class TripPostService {
         if (!tripPostRepository.existsById(tripPostId)) {
             throw new CustomException(GlobalErrorCode.InvalidTripPostIdentifier);
         }
-        if (isAdding && likesRepository.existsByMemberIdAndTripPostId(memberId, tripPostId)) {
+        if (isAdding && likesRepository.existsByMemberIdAndTripPostIdImpl(memberId, tripPostId)) {
             throw new CustomException(GlobalErrorCode.DuplicateLike);
-        } else if (!isAdding && !likesRepository.existsByMemberIdAndTripPostId(memberId, tripPostId)) {
+        } else if (!isAdding && !likesRepository.existsByMemberIdAndTripPostIdImpl(memberId, tripPostId)) {
             throw new CustomException(GlobalErrorCode.BadRequest);
         }
     }
