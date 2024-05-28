@@ -6,11 +6,14 @@ import com.mola.domain.member.repository.MemberRepository;
 import com.mola.domain.tripBoard.like.entity.Likes;
 import com.mola.domain.tripBoard.like.repository.LikesRepository;
 import com.mola.domain.tripBoard.tripImage.entity.TripImage;
+import com.mola.domain.tripBoard.tripImage.repository.TripImageRepository;
+import com.mola.domain.tripBoard.tripPost.dto.TripPostDto;
 import com.mola.domain.tripBoard.tripPost.entity.TripPost;
 import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
 import com.mola.domain.tripBoard.tripPost.repository.TripPostRepository;
 import com.mola.domain.tripBoard.tripPost.service.TripPostService;
 import com.mola.global.exception.CustomException;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,12 +27,14 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.LongStream;
 
@@ -43,6 +48,9 @@ class TripPostServiceTest {
     TripPostRepository tripPostRepository;
 
     @Mock
+    TripImageRepository tripImageRepository;
+
+    @Mock
     ModelMapper modelMapper;
 
     @Mock
@@ -54,6 +62,10 @@ class TripPostServiceTest {
     @Mock
     SecurityContext securityContext;
 
+
+    @Mock
+    EntityManager entityManager;
+
     @Spy
     @InjectMocks
     TripPostService tripPostService;
@@ -62,11 +74,18 @@ class TripPostServiceTest {
 
     Member member;
 
+    TripPostDto tripPostDto;
+
+    Authentication authentication;
+
+    Long VALID_ID = 1L;
+    Long INVALID_ID = 0L;
+
     @BeforeEach
     void setUp() {
         modelMapper = new ModelMapper();
         tripPost = TripPost.builder()
-                .id(1L)
+                .id(VALID_ID)
                 .name("name")
                 .content("content")
                 .tripPostStatus(TripPostStatus.PUBLIC)
@@ -77,9 +96,23 @@ class TripPostServiceTest {
         });
         tripPost.setImageUrl(tripImages);
 
-        member = Member.builder().id(1L).build();
+        member = Member.builder().id(VALID_ID).build();
         tripPost.setMember(member);
 
+        String content = "<p>Hello World</p><img src='http://example.com/image.jpg'/>";
+        tripPostDto = TripPostDto.builder()
+                .id(tripPost.getId())
+                .memberId(member.getId())
+                .name("test")
+                .content(content)
+                .tripPlanId(VALID_ID)
+                .tripPostStatus(TripPostStatus.DRAFT)
+                .build();
+
+        authentication = new UsernamePasswordAuthenticationToken(
+                String.valueOf(VALID_ID),
+                null,
+                AuthorityUtils.createAuthorityList("ROLE_USER"));
         SecurityContextHolder.setContext(securityContext);
     }
 
@@ -87,7 +120,7 @@ class TripPostServiceTest {
     @DisplayName("인증된 회원이 존재하는 게시글에 좋아요를 누르면 좋아요 갯수가 증가")
     @Test
     void whenUserAddLikeValidPost_success() throws InterruptedException {
-        when(securityContext.getAuthentication()).thenReturn(new UsernamePasswordAuthenticationToken("1", null, AuthorityUtils.createAuthorityList("ROLE_USER")));
+        when(securityContext.getAuthentication()).thenReturn(authentication);
         when(tripPostRepository.existsById(anyLong())).thenReturn(true);
         when(likesRepository.existsByMemberIdAndTripPostId(anyLong(), anyLong())).thenReturn(false);
         when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
@@ -102,7 +135,7 @@ class TripPostServiceTest {
     @DisplayName("좋아요 요청 중 충돌이 일어나면 재시도 로직이 동작")
     @Test
     void testAddLikeRetryLogicOnOptimisticLockException() throws InterruptedException {
-        when(securityContext.getAuthentication()).thenReturn(new UsernamePasswordAuthenticationToken("1", null, AuthorityUtils.createAuthorityList("ROLE_USER")));
+        when(securityContext.getAuthentication()).thenReturn(authentication);
         when(tripPostRepository.existsById(anyLong())).thenReturn(true);
         when(likesRepository.existsByMemberIdAndTripPostId(anyLong(), anyLong())).thenReturn(false);
         when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
@@ -118,7 +151,7 @@ class TripPostServiceTest {
     @DisplayName("인증된 회원이 존재하는 게시글에 좋아요를 취소하면 좋아요 갯수가 감소")
     @Test
     void whenUserRemoveLikeValidPost_success() throws InterruptedException {
-        when(securityContext.getAuthentication()).thenReturn(new UsernamePasswordAuthenticationToken("1", null, AuthorityUtils.createAuthorityList("ROLE_USER")));
+        when(securityContext.getAuthentication()).thenReturn(authentication);
         tripPost.setLikeCount(1);
         Likes likes = new Likes();
         likes.setMember(member);
@@ -139,7 +172,7 @@ class TripPostServiceTest {
     @DisplayName("좋아요 취소 요청 시 충돌이 일어나면 재시도 로직이 동작")
     @Test
     void testRemoveLikeRetryLogicOnOptimisticLockException() throws InterruptedException {
-        when(securityContext.getAuthentication()).thenReturn(new UsernamePasswordAuthenticationToken("1", null, AuthorityUtils.createAuthorityList("ROLE_USER")));
+        when(securityContext.getAuthentication()).thenReturn(authentication);
         when(tripPostRepository.existsById(anyLong())).thenReturn(true);
         when(likesRepository.existsByMemberIdAndTripPostId(anyLong(), anyLong())).thenReturn(true);
         when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
@@ -231,7 +264,6 @@ class TripPostServiceTest {
         doReturn(member.getId()).when(tripPostService).getAuthenticatedMemberId();
         when(tripPostRepository.isPublic(anyLong())).thenReturn(true);
         doReturn(true).when(tripPostService).isOwner(anyLong());
-//        when(memberRepository.findRoleByMemberId(anyLong())).thenReturn(MemberRole.ADMIN);
 
         // when
         tripPostService.getTripPostResponseDto(tripPost.getId());
@@ -251,7 +283,105 @@ class TripPostServiceTest {
 
         // expected
         assertThrows(CustomException.class, () -> tripPostService.getTripPostResponseDto(tripPost.getId()));
+    }
 
+    @DisplayName("존재하는 tripPost 이라면 엔티티를 반환")
+    @Test
+    void findById() {
+        // given
+        when(tripPostRepository.findById(VALID_ID)).thenReturn(Optional.of(tripPost));
+
+        // expected
+        assertDoesNotThrow(() -> tripPostService.findById(VALID_ID));
+    }
+
+    @DisplayName("존재하지 않는 tripPost 이라면 에러를 발생")
+    @Test
+    void findById_throwException() {
+        // given
+        when(tripPostRepository.findById(INVALID_ID)).thenReturn(Optional.empty());
+
+        // expected
+        assertThrows(CustomException.class, () -> tripPostService.findById(INVALID_ID));
+    }
+
+    @DisplayName("임시 상태 tripPost 를 생성")
+    @Test
+    void createDraftTripPost_success() {
+        // given
+        doReturn(member.getId()).when(tripPostService).getAuthenticatedMemberId();
+        when(entityManager.getReference(Member.class, member.getId())).thenReturn(member);
+        when(tripPostRepository.save(any(TripPost.class))).thenReturn(tripPost);
+
+        // when
+        Map<String, Long> draftTripPost = tripPostService.createDraftTripPost();
+
+        // then
+        assertEquals(draftTripPost.get("memberId"), member.getId());
+        assertEquals(draftTripPost.get("tempPostId"), tripPost.getId());
+    }
+
+    @DisplayName("일치하는 회원이 아니라면 에러를 발생")
+    @Test
+    void testSave_UnauthorizedUser_ThrowsException() {
+        // given
+        doReturn(false).when(tripPostService).isOwner(anyLong());
+
+        // Act & Assert
+        assertThrows(CustomException.class, () -> tripPostService.save(tripPostDto));
+    }
+
+    @DisplayName("일치하는 회원이라면 tripPost 를 저장")
+    @Test
+    void saveTripPost_success() {
+        // given
+        doReturn(true).when(tripPostService).isOwner(anyLong());
+        doReturn(tripPost).when(tripPostService).findById(anyLong());
+        doReturn(new TripImage()).when(tripImageRepository).save(any(TripImage.class));
+
+        // expected
+        assertDoesNotThrow(() -> tripPostService.save(tripPostDto));
+    }
+
+    @DisplayName("tripPost의 작성자와 식별자가 같다면 true 를 반환")
+    @Test
+    void isOwner_success() {
+        // given
+        doReturn(tripPost).when(tripPostService).findById(anyLong());
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+
+        // when
+        boolean owner = tripPostService.isOwner(VALID_ID);
+
+        // then
+        assertTrue(owner);
+    }
+
+    @DisplayName("tripPost의 작성자와 식별자가 같더라도 인증된 사용자가 아니라면 false 를 반환")
+    @Test
+    void isOwner_fail() {
+        // given
+        authentication.setAuthenticated(false);
+        doReturn(tripPost).when(tripPostService).findById(anyLong());
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+
+        // when
+        boolean owner = tripPostService.isOwner(VALID_ID);
+
+        // then
+        assertFalse(owner);
+    }
+
+    @DisplayName("tripPost 작성자의 삭제요청은 정상 처리")
+    @Test
+    void deleteTripPost_success() {
+        // given
+        doReturn(true).when(tripPostService).isOwner(anyLong());
+        doReturn(tripPost).when(tripPostService).findById(anyLong());
+
+        // expected
+        assertDoesNotThrow(() -> tripPostService.deleteTripPost(VALID_ID));
+        tripPost.getImageUrl();
     }
 
 }
