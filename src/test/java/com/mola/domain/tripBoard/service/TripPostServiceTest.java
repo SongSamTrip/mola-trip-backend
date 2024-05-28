@@ -62,7 +62,6 @@ class TripPostServiceTest {
     @Mock
     SecurityContext securityContext;
 
-
     @Mock
     EntityManager entityManager;
 
@@ -84,6 +83,7 @@ class TripPostServiceTest {
     @BeforeEach
     void setUp() {
         modelMapper = new ModelMapper();
+        // TripPost, TripImage, Member 초기화
         tripPost = TripPost.builder()
                 .id(VALID_ID)
                 .name("name")
@@ -95,10 +95,10 @@ class TripPostServiceTest {
             tripImages.add(new TripImage(i, "test" + i, tripPost));
         });
         tripPost.setImageUrl(tripImages);
-
         member = Member.builder().id(VALID_ID).build();
         tripPost.setMember(member);
 
+        // TripPostDto 초기화
         String content = "<p>Hello World</p><img src='http://example.com/image.jpg'/>";
         tripPostDto = TripPostDto.builder()
                 .id(tripPost.getId())
@@ -109,6 +109,7 @@ class TripPostServiceTest {
                 .tripPostStatus(TripPostStatus.DRAFT)
                 .build();
 
+        // SecurityContext 초기화
         authentication = new UsernamePasswordAuthenticationToken(
                 String.valueOf(VALID_ID),
                 null,
@@ -122,7 +123,7 @@ class TripPostServiceTest {
     void whenUserAddLikeValidPost_success() throws InterruptedException {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(tripPostRepository.existsById(anyLong())).thenReturn(true);
-        when(likesRepository.existsByMemberIdAndTripPostId(anyLong(), anyLong())).thenReturn(false);
+        when(likesRepository.existsByMemberIdAndTripPostIdImpl(anyLong(), anyLong())).thenReturn(false);
         when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
         when(tripPostRepository.findByIdWithOptimisticLock(anyLong())).thenReturn(tripPost);
 
@@ -137,7 +138,7 @@ class TripPostServiceTest {
     void testAddLikeRetryLogicOnOptimisticLockException() throws InterruptedException {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(tripPostRepository.existsById(anyLong())).thenReturn(true);
-        when(likesRepository.existsByMemberIdAndTripPostId(anyLong(), anyLong())).thenReturn(false);
+        when(likesRepository.existsByMemberIdAndTripPostIdImpl(anyLong(), anyLong())).thenReturn(false);
         when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
         when(tripPostRepository.findByIdWithOptimisticLock(anyLong())).thenReturn(tripPost);
         when(tripPostRepository.save(any(TripPost.class))).thenThrow(OptimisticLockException.class);
@@ -158,7 +159,7 @@ class TripPostServiceTest {
         likes.setTripPost(tripPost);
 
         when(tripPostRepository.existsById(anyLong())).thenReturn(true);
-        when(likesRepository.existsByMemberIdAndTripPostId(anyLong(), anyLong())).thenReturn(true);
+        when(likesRepository.existsByMemberIdAndTripPostIdImpl(anyLong(), anyLong())).thenReturn(true);
         when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
         when(tripPostRepository.findByIdWithOptimisticLock(anyLong())).thenReturn(tripPost);
         when(likesRepository.findByMemberIdAndTripPostId(anyLong(), anyLong())).thenReturn(likes);
@@ -174,7 +175,7 @@ class TripPostServiceTest {
     void testRemoveLikeRetryLogicOnOptimisticLockException() throws InterruptedException {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(tripPostRepository.existsById(anyLong())).thenReturn(true);
-        when(likesRepository.existsByMemberIdAndTripPostId(anyLong(), anyLong())).thenReturn(true);
+        when(likesRepository.existsByMemberIdAndTripPostIdImpl(anyLong(), anyLong())).thenReturn(true);
         when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
         when(tripPostRepository.findByIdWithOptimisticLock(anyLong())).thenReturn(tripPost);
         when(tripPostRepository.save(any(TripPost.class))).thenThrow(OptimisticLockException.class);
