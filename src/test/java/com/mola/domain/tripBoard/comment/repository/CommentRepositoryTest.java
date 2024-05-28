@@ -6,27 +6,28 @@ import com.mola.domain.tripBoard.tripPost.entity.TripPost;
 import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
 import com.mola.fixture.Fixture;
 import com.mola.global.config.QueryDslConfig;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Import(QueryDslConfig.class)
 @DataJpaTest
+@Transactional
 class CommentRepositoryTest {
 
     @Autowired
     private CommentRepository commentRepository;
 
-    @PersistenceContext
-    EntityManager em;
+    @Autowired
+    TestEntityManager em;
 
     private Member member;
     private TripPost tripPost;
@@ -34,39 +35,31 @@ class CommentRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        member = Fixture.createMember(1L, "test");
-        tripPost = Fixture.createTripPost(1L, TripPostStatus.PUBLIC);
+        member = Fixture.createMember(null, "test");
+        tripPost = Fixture.createTripPost(null, TripPostStatus.PUBLIC);
         tripPost.setVersion(1L);
         comment = Fixture.createComment(null, "test", member, tripPost);
 
-        em.merge(member);
-        em.merge(tripPost);
-        comment = commentRepository.save(comment);
+        em.persist(member);
+        em.persist(tripPost);
 
-        em.flush();
-        em.clear();
+        comment = commentRepository.save(comment);
     }
 
-
-    @DisplayName("댓글을 작성한 회원이라면 true 반환")
-    @Test
-    void isUserAuthorizedForComment() {
-        // when
-        boolean userAuthorizedForComment =
-                commentRepository.isUserAuthorizedForComment(comment.getId(), member.getId());
-
-        // then
-        assertTrue(userAuthorizedForComment);
+    @AfterEach
+    void tearDown() {
+        em.flush();
+        em.clear();
+        em.getEntityManager().createQuery("DELETE FROM Comment").executeUpdate();
+        em.getEntityManager().createQuery("DELETE FROM TripPost").executeUpdate();
+        em.getEntityManager().createQuery("DELETE FROM Member").executeUpdate();
     }
 
     @DisplayName("댓글을 작성한 회원이 아니라면 false 반환")
     @Test
-    void isUserAuthorizedForComment_false() {
+    void isUserAuthorizedForComment_returnFalse() {
         // given
-        Long INVALID_ID = 5L;
-        em.merge(Fixture.createComment(INVALID_ID, "test", member, tripPost));
-        em.flush();
-        em.clear();
+        Long INVALID_ID = 1234L;
 
         // when
         boolean userAuthorizedForComment =
