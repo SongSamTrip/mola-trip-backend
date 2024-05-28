@@ -60,14 +60,14 @@ class JwtAuthProcessFilterTest {
 
         when(jwtProvider.verifyToken(token)).thenReturn(true);
         when(jwtProvider.extractMemberIdFromToken(token)).thenReturn(memberId);
-        when(jwtProvider.createUserDetails(memberId, "ROLE_USER")).thenReturn(userDetails);
+        when(jwtProvider.createUserDetails(memberId, null)).thenReturn(userDetails);
 
         // when
         jwtAuthProcessFilter.doFilterInternal(request, response, filterChain);
 
         // then
         verify(jwtProvider).verifyToken(token);
-        verify(jwtProvider).createUserDetails(memberId, "ROLE_USER");
+        verify(jwtProvider).createUserDetails(memberId, null);
         assertNotNull(SecurityContextHolder.getContext().getAuthentication());
         assertEquals(userDetails, SecurityContextHolder.getContext().getAuthentication().getPrincipal());
     }
