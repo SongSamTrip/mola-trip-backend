@@ -74,21 +74,13 @@ public class TripPostController {
 
     @PostMapping("/{id}/likes")
     public ResponseEntity<?> addLike(@PathVariable("id") Long tripPostId){
-        try {
-            tripPostService.addLikes(tripPostId);
-        } catch (InterruptedException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        tripPostService.addLikes(tripPostId);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}/likes")
     public ResponseEntity<?> removeLike(@PathVariable("id") Long tripPostId){
-        try {
-            tripPostService.removeLikes(tripPostId);
-        } catch (InterruptedException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        tripPostService.removeLikes(tripPostId);
         return ResponseEntity.ok().build();
     }
 
@@ -100,7 +92,7 @@ public class TripPostController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("{id}/admin")
-    public ResponseEntity<?> deleteAdminTripPosts(@PathVariable Long id){
+    public ResponseEntity<?> deleteAdminTripPosts(@PathVariable("id") Long id){
         tripPostService.deleteAdminTripPost(id);
         return ResponseEntity.ok().build();
     }
