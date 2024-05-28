@@ -1,10 +1,14 @@
 package com.mola.domain.member.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.mola.domain.member.dto.MemberResponseDto;
 import com.mola.domain.member.entity.LoginProvider;
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.member.entity.MemberRole;
 import com.mola.fixture.Fixture;
 import com.mola.global.config.QueryDslConfig;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,10 +18,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 
 @Import(QueryDslConfig.class)
@@ -39,7 +39,6 @@ class MemberRepositoryTest {
         entityManager.flush();
     }
 
-
     @DisplayName("모든 회원 정보를 조회")
     @Test
     void findMembersForAdmin() {
@@ -59,5 +58,16 @@ class MemberRepositoryTest {
         assertThat(content.get(1).getNickname()).isEqualTo("User2");
         assertThat(content.get(0).getLoginProvider()).isEqualTo(LoginProvider.GITHUB);
         assertThat(content.get(1).getLoginProvider()).isEqualTo(LoginProvider.NAVER);
+    }
+
+    @DisplayName("Member의 Role 찾는다")
+    @Test
+    void findRoleByMemberId() {
+        // when
+        MemberRole memberRole = memberRepository.findRoleByMemberId(1L);
+
+        // then
+        assertThat(memberRole).isNotNull();
+        assertThat(memberRole).isEqualTo(MemberRole.USER);
     }
 }

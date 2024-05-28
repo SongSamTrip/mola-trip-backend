@@ -51,6 +51,15 @@ public class Fixture {
                 .build();
     }
 
+    public static TripPost createTripPostWithMember(Member member, TripPostStatus status) {
+        return TripPost.builder()
+                .member(member)
+                .tripPostStatus(status)
+                .comments(new ArrayList<>())
+                .likes(new ArrayList<>())
+                .build();
+    }
+
     public static Comment createComment(Long id, String content, Member member, TripPost tripPost){
         return new Comment(id, content, member, tripPost);
     }
