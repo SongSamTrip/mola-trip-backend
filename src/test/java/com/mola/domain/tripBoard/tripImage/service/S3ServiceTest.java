@@ -26,7 +26,7 @@ class S3ServiceTest {
 
     @BeforeEach
     void setup() {
-        amazonS3 = mock(AmazonS3.class, withSettings().lenient());
+        amazonS3 = mock(AmazonS3.class);
         s3Service = new S3Service(amazonS3, "test");
     }
 
@@ -81,6 +81,4 @@ class S3ServiceTest {
         // then
         verify(amazonS3, times(1)).deleteObject(anyString(), anyString());
     }
-
-
 }
