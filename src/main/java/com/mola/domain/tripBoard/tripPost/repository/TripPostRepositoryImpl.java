@@ -104,7 +104,7 @@ public class TripPostRepositoryImpl implements TripPostRepositoryCustom {
     }
 
     @Override
-    public boolean isPublic(Long id) {
+    public boolean isTripPostStatusPublic(Long id) {
         TripPostStatus tripPostStatus = jpaQueryFactory.select(tripPost.tripPostStatus)
                 .from(tripPost)
                 .where(tripPost.id.eq(id))

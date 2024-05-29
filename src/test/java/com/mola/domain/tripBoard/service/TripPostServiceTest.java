@@ -218,16 +218,16 @@ class TripPostServiceTest {
 
     @DisplayName("공개상태의 게시글이라면 true 반환")
     @Test
-    void isPublic_true() {
+    void isTripPostStatusPublic_true() {
         // given
-        when(tripPostRepository.isPublic(tripPost.getId())).thenReturn(true);
+        when(tripPostRepository.isTripPostStatusPublic(tripPost.getId())).thenReturn(true);
 
         // when
-        boolean aPublic = tripPostService.isPublic(tripPost.getId());
+        boolean aPublic = tripPostService.isTripPostStatusPublic(tripPost.getId());
 
         //then
         assertTrue(aPublic);
-        verify(tripPostRepository, times(1)).isPublic(tripPost.getId());
+        verify(tripPostRepository, times(1)).isTripPostStatusPublic(tripPost.getId());
     }
 
     @DisplayName("존재하는 게시글이라면 true 반환")
@@ -249,7 +249,7 @@ class TripPostServiceTest {
     void getTripPostResponseDto_success() {
         // given
         when(securityUtil.getAuthenticatedMemberId()).thenReturn(member.getId());
-        when(tripPostRepository.isPublic(anyLong())).thenReturn(true);
+        when(tripPostRepository.isTripPostStatusPublic(anyLong())).thenReturn(true);
 
         // when
         tripPostService.getTripPostResponseDto(tripPost.getId());
@@ -262,7 +262,7 @@ class TripPostServiceTest {
     @Test
     void getTripPostResponseDto_throwException() {
         // given
-        when(tripPostRepository.isPublic(anyLong())).thenReturn(false);
+        when(tripPostRepository.isTripPostStatusPublic(anyLong())).thenReturn(false);
         when(securityUtil.isAdmin(anyLong())).thenReturn(false);
         when(securityUtil.getAuthenticatedMemberId()).thenReturn(INVALID_ID);
         when(tripPostRepository.findById(anyLong())).thenReturn(Optional.of(tripPost));

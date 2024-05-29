@@ -13,7 +13,7 @@ public interface TripPostRepositoryCustom {
 
     Page<TripPostListResponseDto> getAllTripPostResponseDto(Long memberId, TripPostStatus status, Pageable pageable);
 
-    boolean isPublic(Long id);
+    boolean isTripPostStatusPublic(Long id);
 
     Page<CommentDto> getCommentsForTripPost(Long tripPostId, Pageable pageable);
 }

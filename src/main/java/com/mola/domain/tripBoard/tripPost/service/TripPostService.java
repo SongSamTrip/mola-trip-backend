@@ -86,8 +86,8 @@ public class TripPostService {
         return tripPostRepository.getAllTripPostResponseDto(null, null, pageable);
     }
 
-    public boolean isPublic(Long tripPostId) {
-        return tripPostRepository.isPublic(tripPostId);
+    public boolean isTripPostStatusPublic(Long tripPostId) {
+        return tripPostRepository.isTripPostStatusPublic(tripPostId);
     }
 
     public boolean existsTripPost(Long tripPostId){
@@ -127,7 +127,7 @@ public class TripPostService {
 
     @Transactional
     public Long save(TripPostDto tripPostDto) {
-        if (!isOwner(tripPostDto.getId())) {
+        if (!isCurrentUserOwnerOfTripPost(tripPostDto.getId())) {
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
         TripPost tripPost = extractAndSaveImageUrl(tripPostDto);
@@ -137,7 +137,7 @@ public class TripPostService {
 
     @Transactional
     public void deleteTripPost(Long id){
-        if(!isOwner(id) && !isAdmin(getAuthenticatedMemberId())){
+        if(!isCurrentUserOwnerOfTripPost(id) && !isMemberAdmin(getAuthenticatedMemberId())){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
 
@@ -221,7 +221,7 @@ public class TripPostService {
         throw new CustomException(GlobalErrorCode.ExcessiveRetries);
     }
 
-    private boolean isOwner(Long tripPostId){
+    private boolean isCurrentUserOwnerOfTripPost(Long tripPostId){
         TripPost byId = findById(tripPostId);
 
         return securityUtil.getAuthenticatedMemberId() == byId.getMember().getId();
@@ -267,14 +267,14 @@ public class TripPostService {
     }
 
     private void validateAccessToTripPost(Long tripPostId, Long memberId) {
-        if(!tripPostRepository.isPublic(tripPostId)){
-            if(!isOwner(memberId) && !isAdmin(memberId)){
+        if(!tripPostRepository.isTripPostStatusPublic(tripPostId)){
+            if(!isCurrentUserOwnerOfTripPost(memberId) && !isMemberAdmin(memberId)){
                 throw new CustomException(GlobalErrorCode.AccessDenied);
             }
         }
     }
 
-    private boolean isAdmin(Long memberId) {
+    private boolean isMemberAdmin(Long memberId) {
         return securityUtil.isAdmin(memberId);
     }
 }
