@@ -1,7 +1,6 @@
 package com.mola.domain.tripBoard.tripPost.service;
 
 import com.mola.domain.member.entity.Member;
-import com.mola.domain.member.entity.MemberRole;
 import com.mola.domain.member.repository.MemberRepository;
 import com.mola.domain.tripBoard.comment.dto.CommentDto;
 import com.mola.domain.tripBoard.like.entity.Likes;
@@ -16,6 +15,7 @@ import com.mola.domain.tripBoard.tripPost.entity.TripPostStatus;
 import com.mola.domain.tripBoard.tripPost.repository.TripPostRepository;
 import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
+import com.mola.global.util.SecurityUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +26,6 @@ import org.jsoup.select.Elements;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +46,8 @@ public class TripPostService {
 
     private final MemberRepository memberRepository;
 
+    private final SecurityUtil securityUtil;
+
     private final LikesRepository likesRepository;
 
     private final ModelMapper modelMapper;
@@ -58,37 +58,56 @@ public class TripPostService {
 
     private static final long RETRY_DELAY = 100;
 
-    public Page<TripPostListResponseDto> getAllTripPosts(Pageable pageable) {
+    /**
+     * 모든 공개 게시글을 페이징 처리하여 반환합니다.
+     * @param pageable
+     * @return 게시글 리스트 DTO 를 페이징 처리하여 반환합니다.
+     */
+    public Page<TripPostListResponseDto> getAllPublicTripPosts(Pageable pageable) {
         return tripPostRepository.getAllTripPostResponseDto(null, TripPostStatus.PUBLIC, pageable);
     }
 
+    /**
+     * 현재 인증된 사용자가 작성한 모든 게시글을 페이징 처리하여 반환합니다.
+     * @param pageable
+     * @return 게시글 리스트 DTO 를 페이징 처리하여 반환합니다.
+     */
     public Page<TripPostListResponseDto> getAllMyPosts(Pageable pageable){
         Long memberId = getAuthenticatedMemberId();
         return tripPostRepository.getAllTripPostResponseDto(memberId, null, pageable);
     }
 
+    /**
+     * 관리자 권한으로 모든 게시글을 페이징 처리하여 반환합니다.
+     * @param pageable
+     * @return 게시글 리스트 DTO 를 페이징 처리하여 반환합니다.
+     */
     public Page<TripPostListResponseDto> adminGetAllPosts(Pageable pageable){
         return tripPostRepository.getAllTripPostResponseDto(null, null, pageable);
     }
 
-    public boolean isPublic(Long id) {
-        return tripPostRepository.isPublic(id);
+    public boolean isPublic(Long tripPostId) {
+        return tripPostRepository.isPublic(tripPostId);
     }
 
-    public boolean existsTripPost(Long id){
-        return tripPostRepository.existsById(id);
+    public boolean existsTripPost(Long tripPostId){
+        return tripPostRepository.existsById(tripPostId);
     }
 
-    public TripPostResponseDto getTripPostResponseDto(Long id){
+    /**
+     * tripPostId 에 해당하는 엔티티를 가져와 게시글 상세페이지에 필요한 dto 클래스로 변환하여 반환
+     * @param tripPostId TripPost의 식별자
+     * @return TripPostResponseDto 게시글 상세 정보를 포함하고 있는 DTO 클래스
+     * @throws CustomException 만약 접근 권한이 없다면 AccessDenied 에러를 발생
+     */
+    public TripPostResponseDto getTripPostResponseDto(Long tripPostId){
         Long memberId = getAuthenticatedMemberId();
-        boolean isPublic = tripPostRepository.isPublic(id);
-        if(!isOwner(memberId)
-                && !isPublic
-                && !memberRepository.findRoleByMemberId(memberId).equals(MemberRole.ADMIN)){
-            throw new CustomException(GlobalErrorCode.AccessDenied);
-        }
-        return tripPostRepository.getTripPostResponseDtoById(id, memberId);
+
+        validateAccessToTripPost(tripPostId, memberId);
+
+        return tripPostRepository.getTripPostResponseDtoById(tripPostId, memberId);
     }
+
 
     public TripPost findById(Long id){
         return tripPostRepository.findById(id)
@@ -118,7 +137,7 @@ public class TripPostService {
 
     @Transactional
     public void deleteTripPost(Long id){
-        if(!isOwner(id) && !memberRepository.findRoleByMemberId(getAuthenticatedMemberId()).equals(MemberRole.ADMIN)){
+        if(!isOwner(id) && !isAdmin(getAuthenticatedMemberId())){
             throw new CustomException(GlobalErrorCode.AccessDenied);
         }
 
@@ -153,12 +172,8 @@ public class TripPostService {
         return tripPostRepository.getCommentsForTripPost(postId, pageable);
     }
 
-    public Long getAuthenticatedMemberId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new CustomException(GlobalErrorCode.AccessDenied);
-        }
-        return Long.valueOf(authentication.getName());
+    private Long getAuthenticatedMemberId() {
+        return securityUtil.getAuthenticatedMemberId();
     }
 
     private void validateTripPostAndMember(Long tripPostId, Long memberId, boolean isAdding) {
@@ -206,15 +221,10 @@ public class TripPostService {
         throw new CustomException(GlobalErrorCode.ExcessiveRetries);
     }
 
-    public boolean isOwner(Long id){
-        TripPost byId = findById(id);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    private boolean isOwner(Long tripPostId){
+        TripPost byId = findById(tripPostId);
 
-        if(!authentication.isAuthenticated()){
-            return false;
-        }
-
-        return authentication.getName().equals(String.valueOf(byId.getMember().getId()));
+        return securityUtil.getAuthenticatedMemberId() == byId.getMember().getId();
     }
 
     private TripPost extractAndSaveImageUrl(TripPostDto tripPostDto) {
@@ -256,4 +266,15 @@ public class TripPostService {
         tripPostRepository.delete(byId);
     }
 
+    private void validateAccessToTripPost(Long tripPostId, Long memberId) {
+        if(!tripPostRepository.isPublic(tripPostId)){
+            if(!isOwner(memberId) && !isAdmin(memberId)){
+                throw new CustomException(GlobalErrorCode.AccessDenied);
+            }
+        }
+    }
+
+    private boolean isAdmin(Long memberId) {
+        return securityUtil.isAdmin(memberId);
+    }
 }
