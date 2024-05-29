@@ -1,5 +1,7 @@
 package com.mola.domain.member.controller;
 
+
+import com.mola.common.TestConfig;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -13,7 +15,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,7 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-@Import(MemberControllerTest.TestConfig.class)
+@Import(TestConfig.class)
 @WebMvcTest(MemberController.class)
 class MemberControllerTest {
 
@@ -101,11 +102,4 @@ class MemberControllerTest {
                         .with(csrf()))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
-
-
-    @TestConfiguration
-    @EnableMethodSecurity(prePostEnabled = true)
-    static class TestConfig {
-    }
-
 }

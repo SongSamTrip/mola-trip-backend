@@ -6,12 +6,12 @@ import lombok.RequiredArgsConstructor;
 import static com.mola.domain.tripBoard.like.entity.QLikes.likes;
 
 @RequiredArgsConstructor
-public class LikeRepositoryImpl implements LikeRepositoryCustom {
+public class LikesRepositoryImpl implements LikesRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public boolean existsByMemberIdAndTripPostId(Long memberId, Long tripPostId) {
+    public boolean existsByMemberIdAndTripPostIdImpl(Long memberId, Long tripPostId) {
         Integer fetchFirst = jpaQueryFactory.selectOne()
                 .from(likes)
                 .where(likes.member.id.eq(memberId)

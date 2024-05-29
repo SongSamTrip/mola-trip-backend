@@ -44,7 +44,7 @@ class LikesRepositoryTest {
         likes.setTripPost(savedTripPost);
         likesRepository.save(likes);
 
-        assertTrue(likesRepository.existsByMemberIdAndTripPostId(savedMember.getId(), savedTripPost.getId()));
+        assertTrue(likesRepository.existsByMemberIdAndTripPostIdImpl(savedMember.getId(), savedTripPost.getId()));
     }
 
 }
