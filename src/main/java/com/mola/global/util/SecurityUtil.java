@@ -1,6 +1,7 @@
 package com.mola.global.util;
 
 import com.mola.domain.member.entity.Member;
+import com.mola.domain.member.entity.MemberRole;
 import com.mola.domain.member.repository.MemberRepository;
 import com.mola.global.exception.CustomException;
 import com.mola.global.exception.GlobalErrorCode;
@@ -41,5 +42,22 @@ public class SecurityUtil {
 
     public boolean existMember(Long memberId) {
         return memberRepository.existsById(memberId);
+    }
+
+    public boolean isAdmin(Long memberId) {
+        return memberRepository.findRoleByMemberId(memberId).equals(MemberRole.ADMIN);
+    }
+
+    public Long getAuthenticatedMemberId() {
+        Authentication authentication = getAuthentication();
+        return Long.valueOf(authentication.getName());
+    }
+
+    public Authentication getAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new CustomException(GlobalErrorCode.AccessDenied);
+        }
+        return authentication;
     }
 }
