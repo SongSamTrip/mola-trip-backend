@@ -32,7 +32,7 @@ public class TripPostController {
     @GetMapping
     public ResponseEntity<Page<TripPostListResponseDto>> getTripPosts(
             @PageableDefault(size = 10) Pageable pageable) {
-        Page<TripPostListResponseDto> allTripPosts = tripPostService.getAllTripPosts(pageable);
+        Page<TripPostListResponseDto> allTripPosts = tripPostService.getAllPublicTripPosts(pageable);
         return ResponseEntity.ok(allTripPosts);
     }
 
