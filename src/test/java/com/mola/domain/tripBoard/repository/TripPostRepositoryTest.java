@@ -151,7 +151,7 @@ class TripPostRepositoryTest {
         Long tripPostId = savedTripPost.getId();
 
         // when
-        boolean isPublic = tripPostRepository.isPublic(tripPostId);
+        boolean isPublic = tripPostRepository.isTripPostStatusPublic(tripPostId);
 
         // then
         assertThat(isPublic).isTrue();

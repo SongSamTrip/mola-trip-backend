@@ -104,7 +104,7 @@ public class CommentService {
         return Long.valueOf(authentication.getName());
     }
     public void validateTripPost(Long tripPostId) {
-        if(!tripPostService.isPublic(tripPostId)){
+        if(!tripPostService.isTripPostStatusPublic(tripPostId)){
             throw new CustomException(GlobalErrorCode.InvalidTripPostIdentifier);
         }
     }

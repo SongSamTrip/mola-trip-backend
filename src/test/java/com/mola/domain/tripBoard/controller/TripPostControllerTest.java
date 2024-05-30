@@ -164,7 +164,7 @@ class TripPostControllerTest {
     void getTripPosts_success() throws Exception {
         // given
         PageRequest pageRequest = PageRequest.of(0, 10);
-        when(tripPostService.getAllTripPosts(pageRequest)).thenReturn(dtoPage);
+        when(tripPostService.getAllPublicTripPosts(pageRequest)).thenReturn(dtoPage);
 
         // when
         ResultActions resultActions = mockMvc.perform(get("/tripPosts")
