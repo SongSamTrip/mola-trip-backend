@@ -101,7 +101,7 @@ class CommentServiceTest {
     @Test
     void validateTripPost_throwsException() {
         // given
-        when(tripPostService.isPublic(anyLong())).thenReturn(false);
+        when(tripPostService.isTripPostStatusPublic(anyLong())).thenReturn(false);
 
         // expected
         assertThatThrownBy(() -> commentService.validateTripPost(INVALID_ID));
