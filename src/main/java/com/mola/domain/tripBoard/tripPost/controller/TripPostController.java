@@ -1,5 +1,6 @@
 package com.mola.domain.tripBoard.tripPost.controller;
 
+import com.mola.domain.tripBoard.like.service.LikesService;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostListResponseDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostResponseDto;
@@ -27,6 +28,8 @@ import java.util.Map;
 public class TripPostController {
 
     private final TripPostService tripPostService;
+
+    private final LikesService likesService;
 
 
     @GetMapping
@@ -74,13 +77,13 @@ public class TripPostController {
 
     @PostMapping("/{id}/likes")
     public ResponseEntity<?> addLike(@PathVariable("id") Long tripPostId){
-        tripPostService.addLikes(tripPostId);
+        likesService.addLikes(tripPostId);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}/likes")
     public ResponseEntity<?> removeLike(@PathVariable("id") Long tripPostId){
-        tripPostService.removeLikes(tripPostId);
+        likesService.removeLikes(tripPostId);
         return ResponseEntity.ok().build();
     }
 
