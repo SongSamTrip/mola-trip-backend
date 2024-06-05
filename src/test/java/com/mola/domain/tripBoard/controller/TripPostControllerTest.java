@@ -2,6 +2,7 @@ package com.mola.domain.tripBoard.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mola.common.TestConfig;
+import com.mola.domain.tripBoard.like.service.LikesService;
 import com.mola.domain.tripBoard.tripPost.controller.TripPostController;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostDto;
 import com.mola.domain.tripBoard.tripPost.dto.TripPostListResponseDto;
@@ -48,6 +49,9 @@ class TripPostControllerTest {
 
     @MockBean
     TripPostService tripPostService;
+
+    @MockBean
+    LikesService likesService;
 
     Page<TripPostListResponseDto> dtoPage;
 
@@ -224,7 +228,7 @@ class TripPostControllerTest {
     void addLike_success() throws Exception {
         // given
         String VALID_ID = "1";
-        doNothing().when(tripPostService).addLikes(anyLong());
+        doNothing().when(likesService).addLikes(anyLong());
 
         // when
         ResultActions resultActions = mockMvc.perform(post("/tripPosts/{id}/likes", VALID_ID)
@@ -240,7 +244,7 @@ class TripPostControllerTest {
     void addLike_fail() throws Exception {
         // given
         String VALID_ID = "1";
-        doThrow(new CustomException(GlobalErrorCode.ExcessiveRetries)).when(tripPostService).addLikes(anyLong());
+        doThrow(new CustomException(GlobalErrorCode.ExcessiveRetries)).when(likesService).addLikes(anyLong());
 
         // when
         ResultActions resultActions = mockMvc.perform(post("/tripPosts/{id}/likes", VALID_ID)
@@ -259,7 +263,7 @@ class TripPostControllerTest {
     void removeLike_success() throws Exception {
         // given
         String VALID_ID = "1";
-        doNothing().when(tripPostService).removeLikes(anyLong());
+        doNothing().when(likesService).removeLikes(anyLong());
 
         // when
         ResultActions resultActions = mockMvc.perform(delete("/tripPosts/{id}/likes", VALID_ID)
@@ -275,7 +279,7 @@ class TripPostControllerTest {
     void removeLike_fail() throws Exception {
         // given
         String VALID_ID = "1";
-        doThrow(new CustomException(GlobalErrorCode.ExcessiveRetries)).when(tripPostService).removeLikes(anyLong());
+        doThrow(new CustomException(GlobalErrorCode.ExcessiveRetries)).when(likesService).removeLikes(anyLong());
 
         // when
         ResultActions resultActions = mockMvc.perform(delete("/tripPosts/{id}/likes", VALID_ID)
